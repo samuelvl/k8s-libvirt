@@ -1,4 +1,4 @@
-# Jenkins master
+# Kubernetes masters
 output "kubernetes_masters_ip" {
   value = {
     for master in libvirt_domain.kubernetes_master:

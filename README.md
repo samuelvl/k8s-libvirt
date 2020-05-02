@@ -1,10 +1,6 @@
-# k8s-libvirt
+# Kubernetes
 
 Deploy a Kubernetes cluster on libvirt using Terraform.
-
-# Jenkins
-
-Deploy immutable Jenkins instance using Terraform, Fedora CoreOS and ignition.
 
 ## Requirements
 
