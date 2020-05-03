@@ -2,11 +2,11 @@ data "template_file" "user_data" {
 
   count = var.kubernetes_cluster.num_masters
 
-  template = file(format("%s/cloudinit/kubernetes-master.yml", path.module))
+  template = file(format("%s/cloudinit/k8s-master/cloudinit.yml", path.module))
 
   vars = {
     hostname   = format("%s%02d", var.kubernetes_master.hostname, count.index)
-    fqdn       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.domain)
+    fqdn       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
     ssh_pubkey = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
   }
 }
@@ -56,8 +56,8 @@ resource "libvirt_domain" "kubernetes_master" {
   }
 
   network_interface {
-    hostname       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.domain)
-    network_name   = var.libvirt.network
+    hostname       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
+    network_name   = libvirt_network.kubernetes_internal.name
     wait_for_lease = true
   }
 

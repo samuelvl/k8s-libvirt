@@ -7,8 +7,9 @@ set -o pipefail # return the exit code of the last command that threw a non-zero
 # Global variables
 TF_VERSION="0.12.24"
 TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins"
-LIBVIRT_PROVIDER="terraform-provider-libvirt"
-LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
+TF_LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
+CFSSL_VERSION="1.2"
+KUBECTL_VERSION="1.18.0"
 
 # install_terraform <installation_dir> <terraform_version>
 function install_terraform {
@@ -48,6 +49,31 @@ function install_tf_provider {
     rm -f ${provider_binary}.tar.gz
 }
 
+# install_cfssl <installation_dir> <cfssl_version>
+function install_cfssl {
+    cfssl_install_dir=${1}
+    cfssl_version=${2}
+
+    curl -s -L https://pkg.cfssl.org/R${cfssl_version}/cfssl_linux-amd64 \
+        --output ${cfssl_install_dir}/cfssl
+
+    curl -s -L https://pkg.cfssl.org/R${cfssl_version}/cfssljson_linux-amd64 \
+        --output ${cfssl_install_dir}/cfssljson
+
+    chmod +x ${cfssl_install_dir}/cfssl ${cfssl_install_dir}/cfssljson
+}
+
+# install_kubectl <installation_dir> <kubectl_version>
+function install_kubectl {
+    kubectl_install_dir=${1}
+    kubectl_version=${2}
+
+    curl -s -L https://storage.googleapis.com/kubernetes-release/release/v${kubectl_version}/bin/linux/amd64/kubectl \
+        --output ${kubectl_install_dir}/kubectl
+
+    chmod +x ${kubectl_install_dir}/kubectl
+}
+
 # Install libvirt
 if ! (which virsh &> /dev/null); then
     echo "Follow the instructions to install libvirt in your linux distribution."
@@ -64,13 +90,33 @@ else
 fi
 
 # Install libvirt provider plugin
-if ! (ls ${TF_PROVIDERS_DIR}/${LIBVIRT_PROVIDER} &> /dev/null); then
+if ! (ls ${TF_PROVIDERS_DIR}/terraform-provider-libvirt &> /dev/null); then
     echo "Installing libvirt provider for Terraform..."
-    install_tf_provider ${TF_PROVIDERS_DIR} ${LIBVIRT_PROVIDER} \
-        "https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/${LIBVIRT_PROVIDER_VERSION}"
+    install_tf_provider ${TF_PROVIDERS_DIR} terraform-provider-libvirt \
+        "https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/${TF_LIBVIRT_PROVIDER_VERSION}"
     echo "Successfully installed!"
 else
-    libvirt_tf_current_version=$(echo "$(${TF_PROVIDERS_DIR}/${LIBVIRT_PROVIDER} -version)" |\
+    libvirt_tf_current_version=$(echo "$(${TF_PROVIDERS_DIR}/terraform-provider-libvirt -version)" |\
         head -n 1 | rev | cut -d " " -f 1 | rev)
     echo "Libvirt provider ${libvirt_tf_current_version} for Terraform is already installed."
+fi
+
+# Install CloudFlare's PKI toolkit
+if ! (which cfssl &> /dev/null); then
+    echo "Installing CFSSL ${CFSSL_VERSION}..."
+    install_cfssl ${HOME}/bin ${CFSSL_VERSION}
+    echo "Successfully installed!"
+else
+    cfssl_current_version=$(cfssl version | head -n 1 | rev | cut -d " " -f 1 | rev)
+    echo "CFSSL version ${cfssl_current_version} is already installed."
+fi
+
+# Install kubectl
+if ! (which kubectl &> /dev/null); then
+    echo "Installing kubectl ${KUBECTL_VERSION}..."
+    install_kubectl ${HOME}/bin ${KUBECTL_VERSION}
+    echo "Successfully installed!"
+else
+    kubectl_current_version=$(kubectl version --client)
+    echo "Kubectl version ${kubectl_current_version} is already installed."
 fi

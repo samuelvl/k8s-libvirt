@@ -6,6 +6,7 @@ tf_backend_conf=configuration/backend
 tf_variables=configuration/tfvars
 libvirt_pool_dir=/var/lib/libvirt/storage
 libvirt_imgs_dir=/var/lib/libvirt/images
+ssh_maintuser_pubkey=`cat src/ssh/maintuser/id_rsa.pub`
 
 all: init plan deploy test
 requirements:
@@ -27,14 +28,20 @@ init:
 	@echo "Creating directory $(libvirt_imgs_dir) for libvirt images..."
 	@sudo install \
 		--owner="root" \
-		--group="root" \
-		--mode="0750" \
+		--group="libvirt" \
+		--mode="0770" \
    		--context="system_u:object_r:virt_image_t:s0" \
     	--directory $(libvirt_imgs_dir)
 
 	@echo "Generating SSH keypair for maintenance user..."
 	@mkdir -p src/ssh/maintuser
-	echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "" -f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true
+	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "" -f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true && echo ""
+
+	@echo "Rendering FCC configuration for load balancer..."
+	@yq write -i src/ignition/load-balancer/ignition.yml \
+		'passwd.users[0].ssh_authorized_keys[0]' "$(ssh_maintuser_pubkey)"
+	@podman run -i --rm quay.io/coreos/fcct:release --pretty --strict \
+  		< src/ignition/load-balancer/ignition.yml > src/ignition/load-balancer/ignition.json
 
 plan:
 	@echo "Planing infrastructure changes..."
@@ -46,9 +53,13 @@ plan:
 deploy:
 	@echo "Deploying infrastructure..."
 	terraform apply output/tf.$(environment).plan
+
+	@echo "Allow traffic between kubernetes networks..."
+	#@sudo iptables -I FORWARD 1 -j ACCEPT -i kubevirbr0 -o kubevirbr1 -s 10.1.0.0/24 -d 172.1.0.0/24
+	#@sudo iptables -I FORWARD 2 -j ACCEPT -i kubevirbr1 -o kubevirbr0 -s 172.1.0.0/24 -d 10.1.0.0/24
 test:
 	@echo "Testing infrastructure..."
-destroy:
+destroy: plan
 	@echo "Destroying infrastructure..."
 	terraform destroy \
 		-var-file="$(tf_variables)/default.tfvars" \

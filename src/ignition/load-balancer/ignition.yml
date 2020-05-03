@@ -1,0 +1,10 @@
+variant: fcos
+version: 1.0.0
+passwd:
+  users:
+  - name: maintuser
+    uid: 1001
+    groups:
+    - sudo
+    ssh_authorized_keys:
+    - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC1zW4j1ZA7vKXmyrc475e3vOmwzUskgttlvJHf2O/UzYpIXZf6m8PJghK8/MCWQxgtL43Uynn/tdiV48L03peLGo0ndo5u4rL8BIYiVYcqY0TCx/wS0jVBqepDLwpKEXKfkIdC9sF11LsRk7fhkTDtiyux/c2IX34ob7L88VawbMA8Ngb0Cp1d7LE9F6lo6ifXmzoEjMCuy80JG6+oGYVLs1YBXULJliyXgLHoxOgVoGYOGv5Zp7AiI7FpeR9XhhubsmbDHiNZFbpyyi40uGFV3TqL13Nz00IHW4Uo3ckntQ5T7V0+LZdMBgU/8SylqDUorro5aHe74UfbPIn9FrbXLn0r1NPVoEi/5WH4sGZgSHwvqY25Q4C6GpowIqost9MkH5s4513Gk9XsRdR8oT/krmxNjV8eYX+Cn7wZPJGDHZHvKX6y3t4MNQXXHN39BMjAly6LuCVtGFYOE1tTSlCK2k0Pdz4JaQxBsPb+cnQx4jPuoav1cs8SdhhfoaBJYWt+1W/fi73ijtcNi3OVja/+nOq9oPlEYb55N8VM/LZ0id9cUFERuJTdUX3PqYQQEULDXQtqZQi52WYoV/4OlTRjJIWlooLuqhfHz53g1QcaONwmuv5O625Aowcl0Vb5Q0U0rBa+vfkYrGpw+dtUKjv2FM1XOg/r2k8KdLR+ue9E6w== '

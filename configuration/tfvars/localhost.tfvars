@@ -1,11 +1,17 @@
 libvirt = {
-  network   = "k8s"
-  pool      = "kubernetes"
-  pool_path = "/var/lib/libvirt/storage/kubernetes"
+  network_public   = "k8s-public"
+  network_internal = "k8s-internal"
+  pool             = "kubernetes"
+  pool_path        = "/var/lib/libvirt/storage/kubernetes"
 }
 
 dns = {
-  domain = "k8s.libvirt.local"
+  public_zone = {
+    domain = "k8s.libvirt.com"
+  }
+  internal_zone = {
+    domain = "k8s.libvirt.local"
+  }
 }
 
 kubernetes_cluster = {

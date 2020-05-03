@@ -2,9 +2,10 @@
 variable "libvirt" {
   description = "Libvirt configuration"
   type = object({
-    network   = string,
-    pool      = string,
-    pool_path = string
+    network_public   = string,
+    network_internal = string,
+    pool             = string,
+    pool_path        = string
   })
 }
 
@@ -12,7 +13,23 @@ variable "libvirt" {
 variable "dns" {
   description = "DNS configuration"
   type = object({
-    domain = string
+    public_zone   = object({
+      domain = string
+    }),
+    internal_zone = object({
+      domain = string
+    })
+  })
+}
+
+# Load balancer specification
+variable "load_balancer" {
+  description = "Configuration for load balancer virtual machine"
+  type = object({
+    hostname = string,
+    base_img = string,
+    vcpu     = number,
+    memory   = number
   })
 }
 
