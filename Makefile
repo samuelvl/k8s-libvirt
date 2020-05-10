@@ -43,6 +43,30 @@ init:
 	@podman run -i --rm quay.io/coreos/fcct:release --pretty --strict \
   		< src/ignition/load-balancer/ignition.yml > src/ignition/load-balancer/ignition.json
 
+	@echo "Configuring firewall for public machines..."
+	@sudo firewall-cmd --new-zone=k8s-public --permanent || true
+	@sudo firewall-cmd --zone=k8s-public --permanent --set-target=DROP
+	@sudo firewall-cmd --zone=k8s-public --permanent \
+		--add-service=ssh \
+		--add-service=dns \
+		--add-service=dhcp \
+		--add-service=dhcpv6
+	@sudo firewall-cmd --zone=k8s-public --permanent \
+		--add-protocol=icmp \
+		--add-protocol=ipv6-icmp
+
+	@echo "Configuring firewall for internal machines..."
+	@sudo firewall-cmd --new-zone=k8s-internal --permanent || true
+	@sudo firewall-cmd --zone=k8s-internal --permanent --set-target=DROP
+	@sudo firewall-cmd --zone=k8s-internal --permanent \
+		--add-service=ssh \
+		--add-service=dns \
+		--add-service=dhcp \
+		--add-service=dhcpv6
+	@sudo firewall-cmd --zone=k8s-internal --permanent \
+		--add-protocol=icmp \
+		--add-protocol=ipv6-icmp
+
 plan:
 	@echo "Planing infrastructure changes..."
 	terraform plan \
@@ -54,7 +78,6 @@ deploy:
 	@echo "Deploying infrastructure..."
 	terraform apply output/tf.$(environment).plan
 
-	@echo "Allow traffic between kubernetes networks..."
 	#@sudo iptables -I FORWARD 1 -j ACCEPT -i kubevirbr0 -o kubevirbr1 -s 10.1.0.0/24 -d 172.1.0.0/24
 	#@sudo iptables -I FORWARD 2 -j ACCEPT -i kubevirbr1 -o kubevirbr0 -s 172.1.0.0/24 -d 10.1.0.0/24
 test:
@@ -69,3 +92,7 @@ destroy: plan
 	@rm -rf output/tf.$(environment).plan
 	@rm -rf state/terraform.$(environment).tfstate
 	@rm -rf src/ssh
+	@sudo firewall-cmd --permanent --delete-zone=k8s-public
+	@sudo firewall-cmd --permanent --delete-zone=k8s-internal
+	@sudo firewall-cmd --reload
+	@sudo systemctl restart libvirtd

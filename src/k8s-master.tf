@@ -44,7 +44,7 @@ resource "libvirt_domain" "kubernetes_master" {
 
   count = var.kubernetes_cluster.num_masters
 
-  name   = format("%s%02d", var.kubernetes_master.hostname, count.index)
+  name   = format("k8s-%s%02d", var.kubernetes_master.hostname, count.index)
   memory = var.kubernetes_master.memory
   vcpu   = var.kubernetes_master.vcpu
 

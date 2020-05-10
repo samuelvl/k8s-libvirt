@@ -19,7 +19,7 @@ resource "libvirt_volume" "load_balancer" {
 }
 
 resource "libvirt_domain" "load_balancer" {
-  name   = format("%s", var.load_balancer.hostname)
+  name   = format("k8s-%s", var.load_balancer.hostname)
   memory = var.load_balancer.memory
   vcpu   = var.load_balancer.vcpu
 

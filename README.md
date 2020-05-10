@@ -59,8 +59,8 @@ dns=dnsmasq
 Configure the NetworkManager DNS server to forward requests with destination the libvirt domains, to corresponding DNS servers. Edit the file `/etc/NetworkManager/dnsmasq.d/libvirt_dnsmasq.conf` and add the following configuration (use your network interface gateway).
 
 ```bash
-server=/k8s.libvirt.com/10.1.0.1
-server=/k8s.libvirt.local/172.1.0.1
+server=/k8s.libvirt.pub/10.1.0.1
+server=/k8s.libvirt.int/172.1.0.1
 ```
 
 Restart NetworkManager service.

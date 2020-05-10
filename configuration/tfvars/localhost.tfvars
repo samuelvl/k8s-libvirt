@@ -7,10 +7,10 @@ libvirt = {
 
 dns = {
   public_zone = {
-    domain = "k8s.libvirt.com"
+    domain = "k8s.libvirt.pub"
   }
   internal_zone = {
-    domain = "k8s.libvirt.local"
+    domain = "k8s.libvirt.int"
   }
 }
 

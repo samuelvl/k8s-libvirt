@@ -5,6 +5,7 @@ resource "libvirt_network" "kubernetes_public" {
   bridge    = "kubevirbr0"
   mtu       = 1500
   addresses = [ "10.1.0.0/24" ]
+  autostart = true
 
   dhcp {
     enabled = true
@@ -12,13 +13,16 @@ resource "libvirt_network" "kubernetes_public" {
 
   dns {
     enabled    = true
-    local_only = false
+    local_only = true
 
     forwarders {
       domain  = var.dns.internal_zone.domain
       address = "172.1.0.1"
     }
+  }
 
+  xml {
+    xslt = file(format("%s/xslt/network-public.xml", path.module))
   }
 }
 
@@ -29,6 +33,7 @@ resource "libvirt_network" "kubernetes_internal" {
   bridge    = "kubevirbr1"
   mtu       = 1500
   addresses = [ "172.1.0.0/24" ]
+  autostart = true
 
   dhcp {
     enabled = true
@@ -36,12 +41,15 @@ resource "libvirt_network" "kubernetes_internal" {
 
   dns {
     enabled    = true
-    local_only = false
+    local_only = true
 
     forwarders {
       domain  = var.dns.public_zone.domain
       address = "10.1.0.1"
     }
+  }
 
+  xml {
+    xslt = file(format("%s/xslt/network-internal.xml", path.module))
   }
 }
