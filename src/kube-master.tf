@@ -1,4 +1,4 @@
-data "template_file" "user_data" {
+data "template_file" "kubernetes_master_cloudinit" {
 
   count = var.kubernetes_cluster.num_masters
 
@@ -17,7 +17,7 @@ resource "libvirt_cloudinit_disk" "kubernetes_master" {
 
   name      = format("cloudinit-%s%02d.qcow2", var.kubernetes_master.hostname, count.index)
   pool      = libvirt_pool.kubernetes.name
-  user_data = element(data.template_file.user_data.*.rendered, count.index)
+  user_data = element(data.template_file.kubernetes_master_cloudinit.*.rendered, count.index)
 }
 
 resource "libvirt_volume" "kubernetes_master_image" {
@@ -57,7 +57,7 @@ resource "libvirt_domain" "kubernetes_master" {
 
   network_interface {
     hostname       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
-    network_name   = libvirt_network.kubernetes_internal.name
+    network_name   = libvirt_network.kubernetes.name
     wait_for_lease = true
   }
 

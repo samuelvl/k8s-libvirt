@@ -31,8 +31,8 @@ resource "libvirt_domain" "load_balancer" {
   }
 
   network_interface {
-    hostname       = format("%s.%s", var.load_balancer.hostname, var.dns.public_zone.domain)
-    network_name   = libvirt_network.kubernetes_public.name
+    hostname       = format("%s.%s", var.load_balancer.hostname, var.dns.internal_zone.domain)
+    network_name   = libvirt_network.kubernetes.name
     wait_for_lease = true
   }
 

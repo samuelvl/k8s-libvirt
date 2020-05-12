@@ -11,7 +11,7 @@
 
   <xsl:template match="bridge[@name='kubevirbr0']">
     <xsl:copy>
-        <xsl:attribute name="zone">k8s-public</xsl:attribute>
+        <xsl:attribute name="zone">libvirt</xsl:attribute>
         <xsl:apply-templates select="@*|node()"/>
     </xsl:copy>
     </xsl:template>

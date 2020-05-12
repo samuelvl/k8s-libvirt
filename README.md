@@ -45,28 +45,42 @@ Restart libvirt daemon.
 systemctl restart libvirtd
 ```
 
-### DNS
+## CA
 
-If dns is enabled in a libvirt network, it will use `dnsmasq` to setup a DNS server listening in the port 53 of the network interface (e.g. virbr100). This DNS will handle A records for virtual machines but can also be used for creating additional A, PTR, SRV and TXT records.
-
-Configure NetworkManager to also use `dnamsq` to setup a DNS server to resolve all local requests. Edit the file `/etc/NetworkManager/conf.d/localdns.conf` and add the following configuration.
+Copy the following files to the masters.
 
 ```bash
-[main]
-dns=dnsmasq
+src/ca
+├── clients
+│   ├── api-server
+│   │   ├── master00
+│   │   │   ├── certificate.crt
+│   │   │   └── certificate.key
+│   │   ├── master01
+│   │   │   ├── certificate.crt
+│   │   │   └── certificate.key
+│   │   └── master02
+│   │       ├── certificate.crt
+│   │       └── certificate.key
+│   └── service-account
+│       ├── certificate.crt
+│       └── certificate.key
+└── root-ca
+    ├── certificate.crt
+    └── certificate.key
 ```
 
-Configure the NetworkManager DNS server to forward requests with destination the libvirt domains, to corresponding DNS servers. Edit the file `/etc/NetworkManager/dnsmasq.d/libvirt_dnsmasq.conf` and add the following configuration (use your network interface gateway).
+Copy the following files to the workers.
 
 ```bash
-server=/k8s.libvirt.pub/10.1.0.1
-server=/k8s.libvirt.int/172.1.0.1
-```
-
-Restart NetworkManager service.
-
-```bash
-systemctl restart NetworkManager
+src/ca
+├── clients
+│   └── kubelet
+│       └── worker00
+│           ├── certificate.crt
+│           └── certificate.key
+└── root-ca
+    └── certificate.crt
 ```
 
 ## References

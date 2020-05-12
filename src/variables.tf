@@ -2,10 +2,17 @@
 variable "libvirt" {
   description = "Libvirt configuration"
   type = object({
-    network_public   = string,
-    network_internal = string,
-    pool             = string,
-    pool_path        = string
+    pool      = string,
+    pool_path = string
+  })
+}
+
+variable "network" {
+  description = "Network configuration"
+  type = object({
+    name    = string,
+    subnet  = string,
+    gateway = string
   })
 }
 
@@ -13,7 +20,7 @@ variable "libvirt" {
 variable "dns" {
   description = "DNS configuration"
   type = object({
-    public_zone   = object({
+    public_zone = object({
       domain = string
     }),
     internal_zone = object({
@@ -38,7 +45,15 @@ variable "kubernetes_cluster" {
   description = "Configuration for Kubernetes cluster"
   type = object({
     num_masters = number,
-    num_workers = number
+    num_workers = number,
+    svc_network = object({
+      cidr    = string,
+      gateway = string
+    }),
+    pod_network = object({
+      cidr    = string,
+      gateway = string
+    })
   })
 }
 
