@@ -56,8 +56,12 @@ resource "libvirt_domain" "kubernetes_worker" {
   }
 
   network_interface {
-    hostname       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
     network_name   = libvirt_network.kubernetes.name
+    hostname       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
+    addresses      = [ lookup(var.kubernetes_inventory,
+      format("%s%02d", var.kubernetes_worker.hostname, count.index)).ip_address ]
+    mac            = lookup(var.kubernetes_inventory,
+      format("%s%02d", var.kubernetes_worker.hostname, count.index)).mac_address
     wait_for_lease = true
   }
 
@@ -74,5 +78,10 @@ resource "libvirt_domain" "kubernetes_worker" {
     listen_type    = "address"
     listen_address = "127.0.0.1"
     autoport       = true
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = format("ssh-keygen -R %s", self.network_interface.0.hostname)
   }
 }

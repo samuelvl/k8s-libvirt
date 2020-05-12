@@ -50,4 +50,9 @@ resource "libvirt_domain" "load_balancer" {
     listen_address = "127.0.0.1"
     autoport       = true
   }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = format("ssh-keygen -R %s", self.network_interface.0.hostname)
+  }
 }

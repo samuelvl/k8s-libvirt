@@ -13,6 +13,8 @@ requirements:
 	@echo "Installing dependencies..."
 	@./requirements.sh
 init:
+	@echo "Elevating privileges..." && sudo -v
+
 	@echo "Initializing Terraform plugins"
 	terraform init \
 		-backend-config="$(tf_backend_conf)/$(environment).conf" $(tf_files)
@@ -39,7 +41,8 @@ init:
 
 	@echo "Generating SSH keypair for maintenance user..."
 	@mkdir -p src/ssh/maintuser
-	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "" -f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true && echo ""
+	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "" \
+		-f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true && echo ""
 
 	@echo "Rendering FCC configuration for load balancer..."
 	@yq write -i src/ignition/load-balancer/ignition.yml \
@@ -60,6 +63,8 @@ deploy:
 test:
 	@echo "Testing infrastructure..."
 destroy: plan
+	@echo "Elevating privileges..." && sudo -v
+
 	@echo "Destroying infrastructure..."
 	terraform destroy \
 		-var-file="$(tf_variables)/default.tfvars" \
@@ -69,6 +74,8 @@ destroy: plan
 	@rm -rf output/tf.$(environment).plan
 	@rm -rf state/terraform.$(environment).tfstate
 	@rm -rf src/ssh
+
+	@echo "Restoring network configuration..."
 	@sudo chmod 755 /etc/NetworkManager/conf.d
 	@sudo chmod 755 /etc/NetworkManager/dnsmasq.d
 	@sudo systemctl restart NetworkManager

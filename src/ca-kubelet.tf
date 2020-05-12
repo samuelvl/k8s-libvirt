@@ -28,7 +28,8 @@ resource "tls_cert_request" "kubelet" {
   ]
 
   ip_addresses = [
-    "10.1.0.68" # TODO: Load from inventory
+    lookup(var.kubernetes_inventory,
+      format("%s%02d", var.kubernetes_worker.hostname, count.index)).ip_address
   ]
 }
 

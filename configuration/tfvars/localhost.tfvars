@@ -12,10 +12,31 @@ network = {
 dns = {
   public_zone = {
     domain = "k8s.libvirt.pub"
+    server = "10.2.0.1"
   }
   internal_zone = {
     domain = "k8s.libvirt.int"
+    server = "10.1.0.1"
   }
+}
+
+kubernetes_inventory = {
+  "master00" = {
+    ip_address  = "10.1.0.10"
+    mac_address = "AA:00:00:00:00:00"
+  },
+  "master01" = {
+    ip_address  = "10.1.0.11"
+    mac_address = "AA:00:00:00:00:01"
+  },
+  "master02" = {
+    ip_address  = "10.1.0.12"
+    mac_address = "AA:00:00:00:00:02"
+  },
+  "worker00" = {
+    ip_address  = "10.1.0.100"
+    mac_address = "EE:00:00:00:00:01"
+  },
 }
 
 kubernetes_cluster = {

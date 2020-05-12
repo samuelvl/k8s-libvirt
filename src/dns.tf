@@ -22,7 +22,7 @@ resource "local_file" "kubernetes_dnsmasq" {
   directory_permission = "0755"
 
   provisioner "local-exec" {
-    command = "systemctl restart NetworkManager"
+    command = "sudo systemctl restart NetworkManager"
   }
 
   depends_on = [

@@ -21,26 +21,26 @@ variable "dns" {
   description = "DNS configuration"
   type = object({
     public_zone = object({
-      domain = string
+      domain = string,
+      server = string
     }),
     internal_zone = object({
-      domain = string
+      domain = string,
+      server = string
     })
   })
 }
 
-# Load balancer specification
-variable "load_balancer" {
-  description = "Configuration for load balancer virtual machine"
-  type = object({
-    hostname = string,
-    base_img = string,
-    vcpu     = number,
-    memory   = number
-  })
+# Kubernetes inventory
+variable "kubernetes_inventory" {
+  description = "List of Kubernetes cluster nodes"
+  type        = map(object({
+    ip_address  = string,
+    mac_address = string
+  }))
 }
 
-# Kubernetes cluster
+# Kubernetes cluster configuration
 variable "kubernetes_cluster" {
   description = "Configuration for Kubernetes cluster"
   type = object({
@@ -71,6 +71,17 @@ variable "kubernetes_master" {
 # Kubernetes workers specification
 variable "kubernetes_worker" {
   description = "Configuration for Kubernetes worker virtual machine"
+  type = object({
+    hostname = string,
+    base_img = string,
+    vcpu     = number,
+    memory   = number
+  })
+}
+
+# Load balancer specification
+variable "load_balancer" {
+  description = "Configuration for load balancer virtual machine"
   type = object({
     hostname = string,
     base_img = string,
