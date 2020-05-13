@@ -48,3 +48,4 @@ kubeconfig-*.yml
 id_rsa*
 certificate.pem
 certificate.key
+encryption-config.yml
