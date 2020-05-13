@@ -24,3 +24,10 @@ resource "tls_self_signed_cert" "kube_root_ca" {
     "crl_signing"
   ]
 }
+
+resource "local_file" "kube_root_ca_certificate_pem" {
+    filename             = format("%s/ca/root-ca/certificate.pem", path.module)
+    content              = tls_self_signed_cert.kube_root_ca.cert_pem
+    file_permission      = "0600"
+    directory_permission = "0700"
+}

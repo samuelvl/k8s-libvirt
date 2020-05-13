@@ -1,3 +1,9 @@
+variable "DEBUG" {
+  description = "Enable debug mode"
+  type        = bool
+  default     = false
+}
+
 # Libvirt configuration
 variable "libvirt" {
   description = "Libvirt configuration"

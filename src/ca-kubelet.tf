@@ -52,3 +52,23 @@ resource "tls_locally_signed_cert" "kubelet" {
     "client_auth"
   ]
 }
+
+resource "local_file" "kubelet_certificate_pem" {
+
+    count = var.kubernetes_cluster.num_workers
+
+    filename             = format("%s/ca/clients/kubelet/%s%02d/certificate.pem", path.module, var.kubernetes_worker.hostname, count.index)
+    content              = element(tls_locally_signed_cert.kubelet.*.cert_pem, count.index)
+    file_permission      = "0600"
+    directory_permission = "0700"
+}
+
+resource "local_file" "kubelet_key_pem" {
+
+    count = var.kubernetes_cluster.num_workers
+
+    filename             = format("%s/ca/clients/kubelet/%s%02d/certificate.key", path.module, var.kubernetes_worker.hostname, count.index)
+    content              = element(tls_private_key.kubelet.*.private_key_pem, count.index)
+    file_permission      = "0600"
+    directory_permission = "0700"
+}

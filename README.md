@@ -83,6 +83,51 @@ src/ca
     └── certificate.crt
 ```
 
+## Kubeconfig
+
+Create a new kubeconfig for worker.
+
+```bash
+kubectl config set-cluster kubernetes \
+    --server=https://api.k8s.libvirt.int:6443 \
+    --certificate-authority=src/ca/root-ca/certificate.pem \
+    --embed-certs=true \
+    --kubeconfig=worker00.kubeconfig
+```
+
+Add TLS authentication to the kubeconfig.
+
+```bash
+kubectl config set-credentials system:node:worker00 \
+    --client-certificate=src/ca/clients/kubelet/worker00/certificate.pem \
+    --client-key=src/ca/clients/kubelet/worker00/certificate.key \
+    --embed-certs=true \
+    --kubeconfig=worker00.kubeconfig
+```
+
+Create default context.
+
+```bash
+kubectl config set-context default \
+    --cluster=kubernetes \
+    --user=system:node:worker00 \
+    --kubeconfig=worker00.kubeconfig
+```
+
+Use the default context by default.
+
+```bash
+kubectl config use-context default --kubeconfig=worker00.kubeconfig
+```
+
+## Troubleshooting
+
+Enable debug mode by setting `TF_VAR_DEBUG` to `true` before planning terraform changes.
+
+```bash
+export TF_VAR_DEBUG="true"
+```
+
 ## References
 
 - https://github.com/kelseyhightower/kubernetes-the-hard-way
