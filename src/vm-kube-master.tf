@@ -37,6 +37,16 @@ data "template_file" "kubernetes_master_cloudinit" {
     etcd_root_ca            = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
     etcd_member_certificate = base64encode(element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index))
     etcd_member_private_key = base64encode(element(tls_private_key.kube_apiserver.*.private_key_pem, count.index))
+
+    kube_root_ca_certificate           = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
+    kube_root_ca_private_key           = base64encode(tls_private_key.kube_root_ca.private_key_pem)
+    kube_api_server_certificate        = base64encode(element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index))
+    kube_api_server_private_key        = base64encode(element(tls_private_key.kube_apiserver.*.private_key_pem, count.index))
+    kube_service_accounts_certificate  = base64encode(tls_locally_signed_cert.kube_service_accounts.cert_pem)
+    kube_service_accounts_private_key  = base64encode(tls_private_key.kube_service_accounts.private_key_pem)
+    etcd_encryption_config             = base64encode(data.template_file.etcd_encryption_key.rendered)
+    kubeconfig_kube_controller_manager = base64encode(data.template_file.kubeconfig_kube_controller_manager.rendered)
+    kubeconfig_kube_scheduler          = base64encode(data.template_file.kubeconfig_kube_scheduler.rendered)
   }
 }
 

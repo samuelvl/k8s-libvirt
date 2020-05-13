@@ -16,6 +16,7 @@ users:
 packages:
   - qemu-guest-agent
 write_files:
+  # Etcd configuration
   - path: /etc/etcd/certificates/etcd-root-ca.pem
     owner: root:root
     permissions: "0644"
@@ -38,6 +39,8 @@ write_files:
       [Unit]
       Description=etcd
       Documentation=https://github.com/etcd-io/etcd
+      After=network-online.target
+      Wants=network-online.target
 
       [Service]
       Type=notify
@@ -65,11 +68,62 @@ write_files:
       [Install]
       WantedBy=multi-user.target
 
-# every boot
+  # Kubernetes API Server configuration
+  - path: /etc/kubernetes/certificates/kube-root-ca.pem
+    owner: root:root
+    permissions: "0644"
+    encoding: b64
+    content: ${kube_root_ca_certificate}
+  - path: /etc/kubernetes/certificates/kube-root-ca.key
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${kube_root_ca_private_key}
+  - path: /etc/kubernetes/certificates/kube-api-server.pem
+    owner: root:root
+    permissions: "0644"
+    encoding: b64
+    content: ${kube_api_server_certificate}
+  - path: /etc/kubernetes/certificates/kube-api-server.key
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${kube_api_server_private_key}
+  - path: /etc/kubernetes/certificates/kube-service-accounts.pem
+    owner: root:root
+    permissions: "0644"
+    encoding: b64
+    content: ${kube_service_accounts_certificate}
+  - path: /etc/kubernetes/certificates/kube-service-accounts.key
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${kube_service_accounts_private_key}
+  - path: /etc/kubernetes/manifests/encryption-config.yml
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${etcd_encryption_config}
+
+  # Kubernetes controller manager configuration
+  - path: /etc/kubernetes/auth/kubeconfig-kube-controller-manager.yml
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${kubeconfig_kube_controller_manager}
+
+  # Kubernetes scheduler configuration
+  - path: /etc/kubernetes/auth/kubeconfig-kube-scheduler.yml
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${kubeconfig_kube_scheduler}
+
+# Every boot
 bootcmd:
   - [ sh, -c, 'echo $(date) | sudo tee -a /root/bootcmd.log' ]
 
-# run once for setup
+# Run once for setup
 runcmd:
   - [ sh, -c, 'echo $(date) | sudo tee -a /root/runcmd.log' ]
   - [ mkdir, -p, /var/lib/etcd ]
@@ -80,5 +134,5 @@ runcmd:
   - [ systemctl, enable, etcd.service ]
   - [ systemctl, start, etcd.service ]
 
-# written to /var/log/cloud-init-output.log
+# Written to /var/log/cloud-init-output.log
 final_message: "The system is finall up, after $UPTIME seconds"

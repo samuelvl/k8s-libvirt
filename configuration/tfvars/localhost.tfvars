@@ -21,6 +21,10 @@ dns = {
 }
 
 kubernetes_inventory = {
+  "lb" = {
+    ip_address  = "10.1.0.250"
+    mac_address = "0A:00:00:00:00:00"
+  }
   "master00" = {
     ip_address  = "10.1.0.10"
     mac_address = "AA:00:00:00:00:00"

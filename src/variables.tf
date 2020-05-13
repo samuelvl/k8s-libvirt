@@ -37,6 +37,18 @@ variable "dns" {
   })
 }
 
+# Load balancer specification
+variable "load_balancer" {
+  description = "Configuration for load balancer virtual machine"
+  type = object({
+    hostname         = string,
+    base_img         = string,
+    vcpu             = number,
+    memory           = number,
+    ha_proxy_version = string
+  })
+}
+
 # Kubernetes inventory
 variable "kubernetes_inventory" {
   description = "List of Kubernetes cluster nodes"
@@ -78,17 +90,6 @@ variable "kubernetes_master" {
 # Kubernetes workers specification
 variable "kubernetes_worker" {
   description = "Configuration for Kubernetes worker virtual machine"
-  type = object({
-    hostname = string,
-    base_img = string,
-    vcpu     = number,
-    memory   = number
-  })
-}
-
-# Load balancer specification
-variable "load_balancer" {
-  description = "Configuration for load balancer virtual machine"
   type = object({
     hostname = string,
     base_img = string,

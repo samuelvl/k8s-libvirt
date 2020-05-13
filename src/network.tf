@@ -14,6 +14,11 @@ resource "libvirt_network" "kubernetes" {
   dns {
     enabled    = true
     local_only = true
+
+    hosts  {
+      hostname = format("api.%s", var.dns.internal_zone.domain)
+      ip       = local.load_balancer_ip
+    }
   }
 
   # xml {

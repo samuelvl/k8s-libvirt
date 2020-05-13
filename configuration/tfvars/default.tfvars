@@ -1,8 +1,9 @@
 load_balancer = {
-  hostname = "lb"
-  base_img = "/var/lib/libvirt/images/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2"
-  vcpu     = 1
-  memory   = 512
+  hostname         = "lb"
+  base_img         = "/var/lib/libvirt/images/fedora-coreos-31.20200310.3.0-qemu.x86_64.qcow2"
+  vcpu             = 1
+  memory           = 512
+  ha_proxy_version = "2.0.14"
 }
 
 kubernetes_master = {

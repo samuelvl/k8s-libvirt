@@ -41,14 +41,12 @@ init:
 
 	@echo "Generating SSH keypair for maintenance user..."
 	@mkdir -p src/ssh/maintuser
-	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "" \
+	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "auto-generated@libvirt.int" \
 		-f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true && echo ""
 
 	@echo "Rendering FCC configuration for load balancer..."
-	@yq write -i src/ignition/load-balancer/ignition.yml \
-		'passwd.users[0].ssh_authorized_keys[0]' "$(ssh_maintuser_pubkey)"
 	@podman run -i --rm quay.io/coreos/fcct:release --pretty --strict \
-  		< src/ignition/load-balancer/ignition.yml > src/ignition/load-balancer/ignition.json
+  		< src/ignition/load-balancer/ignition.yml > src/ignition/load-balancer/ignition.json.tpl
 
 plan:
 	@echo "Planing infrastructure changes..."
