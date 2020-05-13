@@ -26,8 +26,21 @@ resource "tls_self_signed_cert" "kube_root_ca" {
 }
 
 resource "local_file" "kube_root_ca_certificate_pem" {
-    filename             = format("%s/ca/root-ca/certificate.pem", path.module)
-    content              = tls_self_signed_cert.kube_root_ca.cert_pem
-    file_permission      = "0600"
-    directory_permission = "0700"
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("%s/ca/root-ca/certificate.pem", path.module)
+  content              = tls_self_signed_cert.kube_root_ca.cert_pem
+  file_permission      = "0600"
+  directory_permission = "0700"
+}
+
+resource "local_file" "kube_root_ca_private_key_pem" {
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("%s/ca/root-ca/certificate.key", path.module)
+  content              = tls_private_key.kube_root_ca.private_key_pem
+  file_permission      = "0600"
+  directory_permission = "0700"
 }

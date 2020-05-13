@@ -15,10 +15,10 @@ data "template_file" "kubeconfig_kubelet" {
 
 resource "local_file" "kubeconfig_kubelet" {
 
-    count = var.DEBUG ? var.kubernetes_cluster.num_workers : 0
+  count = var.DEBUG ? var.kubernetes_cluster.num_workers : 0
 
-    filename             = format("%s/kubeconfig/kubeconfig-kubelet-%s%02d.yml", path.module, var.kubernetes_worker.hostname, count.index)
-    content              = element(data.template_file.kubeconfig_kubelet.*.rendered, count.index)
-    file_permission      = "0600"
-    directory_permission = "0700"
+  filename             = format("%s/kubeconfig/kubeconfig-kubelet-%s%02d.yml", path.module, var.kubernetes_worker.hostname, count.index)
+  content              = element(data.template_file.kubeconfig_kubelet.*.rendered, count.index)
+  file_permission      = "0600"
+  directory_permission = "0700"
 }

@@ -13,10 +13,10 @@ data "template_file" "kubeconfig_kube_scheduler" {
 
 resource "local_file" "kubeconfig_kube_scheduler" {
 
-    count = var.DEBUG ? 1 : 0
+  count = var.DEBUG ? 1 : 0
 
-    filename             = format("%s/kubeconfig/kubeconfig-kube-scheduler.yml", path.module)
-    content              = data.template_file.kubeconfig_kube_scheduler.rendered
-    file_permission      = "0600"
-    directory_permission = "0700"
+  filename             = format("%s/kubeconfig/kubeconfig-kube-scheduler.yml", path.module)
+  content              = data.template_file.kubeconfig_kube_scheduler.rendered
+  file_permission      = "0600"
+  directory_permission = "0700"
 }

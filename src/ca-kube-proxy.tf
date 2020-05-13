@@ -33,3 +33,23 @@ resource "tls_locally_signed_cert" "kube_proxy" {
     "client_auth"
   ]
 }
+
+resource "local_file" "kube_proxy_certificate_pem" {
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("%s/ca/clients/kube-proxy/certificate.pem", path.module)
+  content              = tls_locally_signed_cert.kube_proxy.cert_pem
+  file_permission      = "0600"
+  directory_permission = "0700"
+}
+
+resource "local_file" "kube_proxy_private_key_pem" {
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("%s/ca/clients/kube-proxy/certificate.key", path.module)
+  content              = tls_private_key.kube_proxy.private_key_pem
+  file_permission      = "0600"
+  directory_permission = "0700"
+}

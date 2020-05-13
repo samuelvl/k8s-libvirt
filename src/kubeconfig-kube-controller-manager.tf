@@ -13,10 +13,10 @@ data "template_file" "kubeconfig_kube_controller_manager" {
 
 resource "local_file" "kubeconfig_kube_controller_manager" {
 
-    count = var.DEBUG ? 1 : 0
+  count = var.DEBUG ? 1 : 0
 
-    filename             = format("%s/kubeconfig/kubeconfig-kube-controller-manager.yml", path.module)
-    content              = data.template_file.kubeconfig_kube_controller_manager.rendered
-    file_permission      = "0600"
-    directory_permission = "0700"
+  filename             = format("%s/kubeconfig/kubeconfig-kube-controller-manager.yml", path.module)
+  content              = data.template_file.kubeconfig_kube_controller_manager.rendered
+  file_permission      = "0600"
+  directory_permission = "0700"
 }

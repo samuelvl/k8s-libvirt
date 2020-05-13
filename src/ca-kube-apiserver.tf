@@ -60,3 +60,25 @@ resource "tls_locally_signed_cert" "kube_apiserver" {
     "client_auth"
   ]
 }
+
+resource "local_file" "kube_apiserver_certificate_pem" {
+
+  count = var.DEBUG ? var.kubernetes_cluster.num_masters : 0
+
+  filename             = format("%s/ca/clients/kube-apiserver/%s%02d/certificate.pem",
+    path.module, var.kubernetes_worker.hostname, count.index)
+  content              = element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index)
+  file_permission      = "0600"
+  directory_permission = "0700"
+}
+
+resource "local_file" "kube_apiserver_private_key_pem" {
+
+  count = var.DEBUG ? var.kubernetes_cluster.num_masters : 0
+
+  filename             = format("%s/ca/clients/kube-apiserver/%s%02d/certificate.key",
+    path.module, var.kubernetes_worker.hostname, count.index)
+  content              = element(tls_private_key.kube_apiserver.*.private_key_pem, count.index)
+  file_permission      = "0600"
+  directory_permission = "0700"
+}

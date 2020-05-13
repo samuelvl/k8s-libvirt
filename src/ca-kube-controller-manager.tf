@@ -33,3 +33,23 @@ resource "tls_locally_signed_cert" "kube_controller_manager" {
     "client_auth"
   ]
 }
+
+resource "local_file" "kube_controller_manager_certificate_pem" {
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("%s/ca/clients/kube-controller-manager/certificate.pem", path.module)
+  content              = tls_locally_signed_cert.kube_controller_manager.cert_pem
+  file_permission      = "0600"
+  directory_permission = "0700"
+}
+
+resource "local_file" "kube_controller_manager_private_key_pem" {
+
+  count = var.DEBUG ? 1 : 0
+
+  filename             = format("%s/ca/clients/kube-controller-manager/certificate.key", path.module)
+  content              = tls_private_key.kube_controller_manager.private_key_pem
+  file_permission      = "0600"
+  directory_permission = "0700"
+}
