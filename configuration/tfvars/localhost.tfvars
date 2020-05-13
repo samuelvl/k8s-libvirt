@@ -40,13 +40,17 @@ kubernetes_inventory = {
 }
 
 kubernetes_cluster = {
-  num_masters = 3
-  num_workers = 1
-  svc_network = {
+  num_masters  = 3
+  num_workers  = 1
+
+  etcd_version = "3.4.7"
+
+  svc_network  = {
     cidr    = "172.0.0.0/16",
     gateway = "172.0.0.1",
   }
-  pod_network= {
+
+  pod_network  = {
     cidr    = "172.255.0.0/16",
     gateway = "172.255.0.1",
   }

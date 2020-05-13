@@ -35,8 +35,7 @@ resource "tls_cert_request" "kube_apiserver" {
 
   ip_addresses = [
     "127.0.0.1",
-    lookup(var.kubernetes_inventory,
-      format("%s%02d", var.kubernetes_master.hostname, count.index)).ip_address,
+    element(local.kubernetes_masters_ip, count.index),
     var.kubernetes_cluster.svc_network.gateway
   ]
 }

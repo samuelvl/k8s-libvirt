@@ -1,3 +1,24 @@
+locals {
+  kubernetes_masters_ip = [
+    for master_index in range(var.kubernetes_cluster.num_masters) :
+      lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_master.hostname, master_index)).ip_address
+  ]
+  kubernetes_masters_mac = [
+    for master_index in range(var.kubernetes_cluster.num_masters) :
+      lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_master.hostname, master_index)).mac_address
+  ]
+}
+
+locals {
+  etcd_members = formatlist("etcd-member%02d", range(var.kubernetes_cluster.num_masters))
+  etcd_peers   = [
+    for member_index in range(var.kubernetes_cluster.num_masters) :
+      format("%s=https://%s:2380",
+        element(local.etcd_members, member_index),
+        element(local.kubernetes_masters_ip, member_index))
+  ]
+}
+
 data "template_file" "kubernetes_master_cloudinit" {
 
   count = var.kubernetes_cluster.num_masters
@@ -8,6 +29,14 @@ data "template_file" "kubernetes_master_cloudinit" {
     hostname   = format("%s%02d", var.kubernetes_master.hostname, count.index)
     fqdn       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
     ssh_pubkey = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
+
+    etcd_version            = var.kubernetes_cluster.etcd_version
+    etcd_member_name        = element(local.etcd_members, count.index)
+    etcd_member_ip          = element(local.kubernetes_masters_ip, count.index)
+    etcd_initial_cluster    = join(",", local.etcd_peers)
+    etcd_root_ca            = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
+    etcd_member_certificate = base64encode(element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index))
+    etcd_member_private_key = base64encode(element(tls_private_key.kube_apiserver.*.private_key_pem, count.index))
   }
 }
 
@@ -58,10 +87,8 @@ resource "libvirt_domain" "kubernetes_master" {
   network_interface {
     network_name   = libvirt_network.kubernetes.name
     hostname       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
-    addresses      = [ lookup(var.kubernetes_inventory,
-      format("%s%02d", var.kubernetes_master.hostname, count.index)).ip_address ]
-    mac            = lookup(var.kubernetes_inventory,
-      format("%s%02d", var.kubernetes_master.hostname, count.index)).mac_address
+    addresses      = [ element(local.kubernetes_masters_ip, count.index) ]
+    mac            = element(local.kubernetes_masters_mac, count.index)
     wait_for_lease = true
   }
 
@@ -82,6 +109,6 @@ resource "libvirt_domain" "kubernetes_master" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = format("ssh-keygen -R %s", self.network_interface.0.hostname)
+    command = format("ssh-keygen -R %s || true", self.network_interface.0.hostname)
   }
 }

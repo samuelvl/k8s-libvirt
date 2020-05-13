@@ -120,6 +120,31 @@ Use the default context by default.
 kubectl config use-context default --kubeconfig=worker00.kubeconfig
 ```
 
+## ETCD
+
+```bash
+ETCD_VER=v3.4.7
+
+# choose either URL
+GOOGLE_URL=https://storage.googleapis.com/etcd
+GITHUB_URL=https://github.com/etcd-io/etcd/releases/download
+DOWNLOAD_URL=${GOOGLE_URL}
+
+curl -L https://storage.googleapis.com/etcd/v3.4.7/etcd-v3.4.7-linux-amd64.tar.gz -o /tmp/etcd-tools.tar.gz
+tar xzvf /tmp/etcd-tools.tar.gz -C /usr/local/bin --strip-components=1 etcd-v3.4.7-linux-amd64/etcd etcd-v3.4.7-linux-amd64/etcdctl
+ln -s /usr/local/bin/etcdctl /usr/local/sbin/etcdctl
+rm -f /tmp/etcd-v3.4.7-linux-amd64.tar.gz
+```
+
+```bash
+export ETCDCTL_CACERT="/etc/etcd/certificates/etcd-root-ca.pem"
+export ETCDCTL_CERT="/etc/etcd/certificates/etcd-member.pem"
+export ETCDCTL_KEY="/etc/etcd/certificates/etcd-member.key"
+
+etcdctl member list -w table
+etcdctl endpoint status --cluster=true -w table
+```
+
 ## Troubleshooting
 
 Enable debug mode by setting `TF_VAR_DEBUG` to `true` before planning terraform changes.

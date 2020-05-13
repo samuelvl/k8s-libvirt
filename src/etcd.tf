@@ -1,13 +1,13 @@
 resource "random_string" "etcd_encryption_key" {
-  length           = 32
-  upper            = true
-  min_upper        = 8
-  lower            = true
-  min_lower        = 8
-  number           = true
-  min_numeric      = 8
-  special          = true
-  min_special      = 8
+  length      = 32
+  upper       = true
+  min_upper   = 8
+  lower       = true
+  min_lower   = 8
+  number      = true
+  min_numeric = 8
+  special     = true
+  min_special = 8
 }
 
 data "template_file" "etcd_encryption_key" {

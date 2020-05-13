@@ -50,13 +50,14 @@ variable "kubernetes_inventory" {
 variable "kubernetes_cluster" {
   description = "Configuration for Kubernetes cluster"
   type = object({
-    num_masters = number,
-    num_workers = number,
-    svc_network = object({
+    num_masters  = number,
+    num_workers  = number,
+    etcd_version = string,
+    svc_network  = object({
       cidr    = string,
       gateway = string
     }),
-    pod_network = object({
+    pod_network  = object({
       cidr    = string,
       gateway = string
     })

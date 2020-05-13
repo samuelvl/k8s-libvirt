@@ -1,3 +1,14 @@
+locals {
+  kubernetes_workers_ip = [
+    for worker_index in range(var.kubernetes_cluster.num_workers) :
+      lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.hostname, worker_index)).ip_address
+  ]
+  kubernetes_workers_mac = [
+    for worker_index in range(var.kubernetes_cluster.num_workers) :
+      lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.hostname, worker_index)).mac_address
+  ]
+}
+
 data "template_file" "kubernetes_worker_cloudinit" {
 
   count = var.kubernetes_cluster.num_workers
@@ -58,10 +69,8 @@ resource "libvirt_domain" "kubernetes_worker" {
   network_interface {
     network_name   = libvirt_network.kubernetes.name
     hostname       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
-    addresses      = [ lookup(var.kubernetes_inventory,
-      format("%s%02d", var.kubernetes_worker.hostname, count.index)).ip_address ]
-    mac            = lookup(var.kubernetes_inventory,
-      format("%s%02d", var.kubernetes_worker.hostname, count.index)).mac_address
+    addresses      = [ element(local.kubernetes_workers_ip, count.index) ]
+    mac            = element(local.kubernetes_workers_mac, count.index)
     wait_for_lease = true
   }
 
@@ -82,6 +91,6 @@ resource "libvirt_domain" "kubernetes_worker" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = format("ssh-keygen -R %s", self.network_interface.0.hostname)
+    command = format("ssh-keygen -R %s || true", self.network_interface.0.hostname)
   }
 }
