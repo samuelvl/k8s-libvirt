@@ -2,7 +2,7 @@ data "template_file" "kubernetes_master_cloudinit" {
 
   count = var.kubernetes_cluster.num_masters
 
-  template = file(format("%s/cloudinit/k8s-master/cloudinit.yml", path.module))
+  template = file(format("%s/cloudinit/k8s-master/userdata.yml.tpl", path.module))
 
   vars = {
     hostname   = format("%s%02d", var.kubernetes_master.hostname, count.index)

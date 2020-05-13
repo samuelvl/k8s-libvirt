@@ -2,7 +2,7 @@ data "template_file" "kubernetes_worker_cloudinit" {
 
   count = var.kubernetes_cluster.num_workers
 
-  template = file(format("%s/cloudinit/k8s-worker/cloudinit.yml", path.module))
+  template = file(format("%s/cloudinit/k8s-worker/userdata.yml.tpl", path.module))
 
   vars = {
     hostname   = format("%s%02d", var.kubernetes_worker.hostname, count.index)
