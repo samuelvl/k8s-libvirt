@@ -20,6 +20,26 @@ dns = {
   }
 }
 
+kubernetes_cluster = {
+  num_masters     = 3
+  num_workers     = 1
+  version         = "1.18.0"
+  etcd_version    = "3.4.7"
+  crio_version    = "1.18"
+  node_port_range = "30000-32767"
+  dns_server      = "172.0.0.100"
+
+  svc_network  = {
+    cidr    = "172.0.0.0/16",
+    gateway = "172.0.0.1",
+  }
+
+  pod_network  = {
+    cidr    = "172.255.0.0/16",
+    gateway = "172.255.0.1",
+  }
+}
+
 kubernetes_inventory = {
   "lb" = {
     ip_address  = "10.1.0.250"
@@ -41,21 +61,4 @@ kubernetes_inventory = {
     ip_address  = "10.1.0.100"
     mac_address = "EE:00:00:00:00:01"
   },
-}
-
-kubernetes_cluster = {
-  num_masters  = 3
-  num_workers  = 1
-
-  etcd_version = "3.4.7"
-
-  svc_network  = {
-    cidr    = "172.0.0.0/16",
-    gateway = "172.0.0.1",
-  }
-
-  pod_network  = {
-    cidr    = "172.255.0.0/16",
-    gateway = "172.255.0.1",
-  }
 }

@@ -49,22 +49,17 @@ variable "load_balancer" {
   })
 }
 
-# Kubernetes inventory
-variable "kubernetes_inventory" {
-  description = "List of Kubernetes cluster nodes"
-  type        = map(object({
-    ip_address  = string,
-    mac_address = string
-  }))
-}
-
 # Kubernetes cluster configuration
 variable "kubernetes_cluster" {
   description = "Configuration for Kubernetes cluster"
   type = object({
-    num_masters  = number,
-    num_workers  = number,
-    etcd_version = string,
+    num_masters     = number,
+    num_workers     = number,
+    version         = string,
+    etcd_version    = string,
+    crio_version    = string,
+    dns_server      = string,
+    node_port_range = string,
     svc_network  = object({
       cidr    = string,
       gateway = string
@@ -96,4 +91,13 @@ variable "kubernetes_worker" {
     vcpu     = number,
     memory   = number
   })
+}
+
+# Kubernetes inventory
+variable "kubernetes_inventory" {
+  description = "List of Kubernetes cluster nodes"
+  type        = map(object({
+    ip_address  = string,
+    mac_address = string
+  }))
 }

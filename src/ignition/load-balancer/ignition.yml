@@ -60,13 +60,13 @@ storage:
               timeout http-keep-alive   10s
               timeout check             10s
 
-          frontend kubernetes-api-server
+          frontend kubernetes-apiserver
               bind *:6443
-              default_backend kubernetes-api-server
+              default_backend kubernetes-apiserver
               mode tcp
               option tcplog
 
-          backend kubernetes-api-server
+          backend kubernetes-apiserver
               balance source
               mode tcp
               server master00 master00.k8s.libvirt.int:6443 check

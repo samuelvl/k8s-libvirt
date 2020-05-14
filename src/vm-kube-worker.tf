@@ -19,6 +19,16 @@ data "template_file" "kubernetes_worker_cloudinit" {
     hostname   = format("%s%02d", var.kubernetes_worker.hostname, count.index)
     fqdn       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
     ssh_pubkey = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
+
+    kube_version             = var.kubernetes_cluster.version
+    crio_version             = var.kubernetes_cluster.crio_version
+    kube_pod_network_cidr    = var.kubernetes_cluster.pod_network.cidr
+    kube_root_ca_certificate = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
+    kubelet_certificate      = base64encode(element(tls_locally_signed_cert.kubelet.*.cert_pem, count.index))
+    kubelet_private_key      = base64encode(element(tls_private_key.kubelet.*.private_key_pem, count.index))
+    kubeconfig_kubelet       = base64encode(element(data.template_file.kubeconfig_kubelet.*.rendered, count.index))
+    kube_dns_server          = var.kubernetes_cluster.dns_server
+    kubeconfig_kube_proxy    = base64encode(data.template_file.kubeconfig_kube_proxy.rendered)
   }
 }
 

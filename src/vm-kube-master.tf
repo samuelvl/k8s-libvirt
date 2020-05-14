@@ -11,6 +11,10 @@ locals {
 
 locals {
   etcd_members = formatlist("etcd-member%02d", range(var.kubernetes_cluster.num_masters))
+  etcd_servers = [
+    for member_index in range(var.kubernetes_cluster.num_masters) :
+      format("https://%s:2379", element(local.kubernetes_masters_ip, member_index))
+  ]
   etcd_peers   = [
     for member_index in range(var.kubernetes_cluster.num_masters) :
       format("%s=https://%s:2380",
@@ -26,6 +30,7 @@ data "template_file" "kubernetes_master_cloudinit" {
   template = file(format("%s/cloudinit/k8s-master/userdata.yml.tpl", path.module))
 
   vars = {
+    ip_address = element(local.kubernetes_masters_ip, count.index)
     hostname   = format("%s%02d", var.kubernetes_master.hostname, count.index)
     fqdn       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
     ssh_pubkey = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
@@ -34,19 +39,25 @@ data "template_file" "kubernetes_master_cloudinit" {
     etcd_member_name        = element(local.etcd_members, count.index)
     etcd_member_ip          = element(local.kubernetes_masters_ip, count.index)
     etcd_initial_cluster    = join(",", local.etcd_peers)
+    etcd_servers            = join(",", local.etcd_servers)
     etcd_root_ca            = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
     etcd_member_certificate = base64encode(element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index))
     etcd_member_private_key = base64encode(element(tls_private_key.kube_apiserver.*.private_key_pem, count.index))
+    etcd_encryption_config  = base64encode(data.template_file.etcd_encryption_key.rendered)
 
+    kube_version                       = var.kubernetes_cluster.version
     kube_root_ca_certificate           = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
     kube_root_ca_private_key           = base64encode(tls_private_key.kube_root_ca.private_key_pem)
     kube_api_server_certificate        = base64encode(element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index))
     kube_api_server_private_key        = base64encode(element(tls_private_key.kube_apiserver.*.private_key_pem, count.index))
     kube_service_accounts_certificate  = base64encode(tls_locally_signed_cert.kube_service_accounts.cert_pem)
     kube_service_accounts_private_key  = base64encode(tls_private_key.kube_service_accounts.private_key_pem)
-    etcd_encryption_config             = base64encode(data.template_file.etcd_encryption_key.rendered)
+    kube_svc_network_cidr              = var.kubernetes_cluster.svc_network.cidr
+    kube_pod_network_cidr              = var.kubernetes_cluster.pod_network.cidr
+    kube_nodeport_range                = var.kubernetes_cluster.node_port_range
     kubeconfig_kube_controller_manager = base64encode(data.template_file.kubeconfig_kube_controller_manager.rendered)
     kubeconfig_kube_scheduler          = base64encode(data.template_file.kubeconfig_kube_scheduler.rendered)
+    kubeconfig_admin                   = base64encode(data.template_file.kubeconfig_kube_admin_localhost.rendered)
   }
 }
 

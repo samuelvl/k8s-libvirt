@@ -41,7 +41,7 @@ init:
 
 	@echo "Generating SSH keypair for maintenance user..."
 	@mkdir -p src/ssh/maintuser
-	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "" -N "auto-generated@libvirt.int" \
+	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "auto-generated@libvirt.int" -N "" \
 		-f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true && echo ""
 
 	@echo "Rendering FCC configuration for load balancer..."
