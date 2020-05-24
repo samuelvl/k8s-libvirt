@@ -164,3 +164,5 @@ etcdctl endpoint status --cluster=true -w table
 == References
 
 * https://github.com/kelseyhightower/kubernetes-the-hard-way
+* https://www.altoros.com/blog/kubernetes-networking-writing-your-own-simple-cni-plug-in-with-bash/
+* https://medium.com/faun/kubernetes-without-kube-proxy-1c5d25786e18
