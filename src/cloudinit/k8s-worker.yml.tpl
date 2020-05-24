@@ -37,6 +37,23 @@ packages:
   - cri-o
 
 write_files:
+  # Networking configuration
+  - path: /etc/sysctl.d/99-enable-ip-forwarding.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      # IPv4
+      net.ipv4.ip_forward = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.bridge.bridge-nf-call-arptables = 1
+      # IPv6
+      net.ipv6.conf.all.forwarding = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+  - path: /etc/modules-load.d/br_netfilter.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      br_netfilter
   # CRI-O configuration
   - path: /etc/cni/net.d/100-crio-bridge.conf
     owner: root:root
@@ -56,7 +73,7 @@ write_files:
                   { "dst": "0.0.0.0/0" }
               ],
               "ranges": [
-                  [{ "subnet": "${kube_pod_network_cidr}" }]
+                  [{ "subnet": "${kube_hostpod_network_cidr}" }]
               ]
           }
       }
@@ -90,7 +107,7 @@ write_files:
       clusterDomain: cluster.local
       clusterDNS:
         - ${kube_dns_server}
-      podCIDR: ${kube_pod_network_cidr}
+      podCIDR: ${kube_hostpod_network_cidr}
       cgroupDriver: systemd
       resolvConf: /etc/resolv.conf
       authentication:
@@ -172,6 +189,8 @@ bootcmd:
 # run once for setup
 runcmd:
   - [ sh, -c, 'echo $(date) | sudo tee -a /root/runcmd.log' ]
+  # Apply custom kernel parameters
+  - [ sysctl, --system ]
   # Download crictl tool
   - [ curl, -L, -o, /tmp/crictl.tar.gz, "https://github.com/kubernetes-sigs/cri-tools/releases/download/v${crio_version}.0/crictl-v${crio_version}.0-linux-amd64.tar.gz" ]
   - [ tar, -xzvf, /tmp/crictl.tar.gz, -C, /usr/local/bin ]
@@ -190,7 +209,6 @@ runcmd:
   # Start Kubernetes compute controllers
   - [ systemctl, enable, kubelet.service, kube-proxy.service ]
   - [ systemctl, start, kubelet.service, kube-proxy.service ]
-
 
 # written to /var/log/cloud-init-output.log
 final_message: "The system is finall up, after $UPTIME seconds"

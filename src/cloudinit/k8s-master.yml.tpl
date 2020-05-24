@@ -16,6 +16,23 @@ users:
 packages:
   - qemu-guest-agent
 write_files:
+  # Networking configuration
+  - path: /etc/sysctl.d/99-enable-ip-forwarding.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      # IPv4
+      net.ipv4.ip_forward = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.bridge.bridge-nf-call-arptables = 1
+      # IPv6
+      net.ipv6.conf.all.forwarding = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+  - path: /etc/modules-load.d/br_netfilter.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      br_netfilter
   # Etcd configuration
   - path: /etc/etcd/certificates/etcd-root-ca.pem
     owner: root:root
@@ -270,6 +287,8 @@ bootcmd:
 # Run once for setup
 runcmd:
   - [ sh, -c, 'echo $(date) | sudo tee -a /root/runcmd.log' ]
+  # Apply custom kernel parameters
+  - [ sysctl, --system ]
   # Download and start the etcd cluster
   - [ mkdir, -p, /var/lib/etcd ]
   - [ curl, -L, "https://storage.googleapis.com/etcd/v${etcd_version}/etcd-v${etcd_version}-linux-amd64.tar.gz", -o, /tmp/etcd.tar.gz ]

@@ -27,13 +27,13 @@ data "template_file" "kubernetes_master_cloudinit" {
 
   count = var.kubernetes_cluster.num_masters
 
-  template = file(format("%s/cloudinit/k8s-master/userdata.yml.tpl", path.module))
+  template = file(format("%s/cloudinit/k8s-master.yml.tpl", path.module))
 
   vars = {
     ip_address = element(local.kubernetes_masters_ip, count.index)
     hostname   = format("%s%02d", var.kubernetes_master.hostname, count.index)
     fqdn       = format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
-    ssh_pubkey = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
+    ssh_pubkey = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
 
     etcd_version            = var.kubernetes_cluster.etcd_version
     etcd_member_name        = element(local.etcd_members, count.index)

@@ -39,11 +39,6 @@ init:
    		--context="system_u:object_r:virt_image_t:s0" \
     	--directory $(libvirt_imgs_dir)
 
-	@echo "Generating SSH keypair for maintenance user..."
-	@mkdir -p src/ssh/maintuser
-	@echo -e 'n\n' | ssh-keygen -o -t rsa -b 4096 -C "auto-generated@libvirt.int" -N "" \
-		-f "$(shell pwd)/src/ssh/maintuser/id_rsa" || true && echo ""
-
 	@echo "Rendering FCC configuration for load balancer..."
 	@podman run -i --rm quay.io/coreos/fcct:release --pretty --strict \
   		< src/ignition/load-balancer/ignition.yml > src/ignition/load-balancer/ignition.json.tpl
@@ -65,13 +60,13 @@ destroy: plan
 
 	@echo "Destroying infrastructure..."
 	terraform destroy \
+		-auto-approve \
 		-var-file="$(tf_variables)/default.tfvars" \
 		-var-file="$(tf_variables)/$(environment).tfvars" \
 		$(tf_files)
 	@rm -rf .terraform
 	@rm -rf output/tf.$(environment).plan
 	@rm -rf state/terraform.$(environment).tfstate
-	@rm -rf src/ssh
 
 	@echo "Restoring network configuration..."
 	@sudo chmod 755 /etc/NetworkManager/conf.d

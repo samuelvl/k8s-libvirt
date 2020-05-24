@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+  namespace: kubernetes-testing
+  labels:
+    component: test
+spec:
+  replicas: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: test
+  template:
+    metadata:
+      labels:
+        component: test
+    spec:
+      containers:
+        - name: shell
+          image: docker.io/centos:centos8
+          args:
+            - sleep
+            - "3600"
+          securityContext:
+            capabilities:
+              add:
+                - NET_RAW

@@ -7,28 +7,34 @@ locals {
     for worker_index in range(var.kubernetes_cluster.num_workers) :
       lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.hostname, worker_index)).mac_address
   ]
+  kubernetes_workers_hostpod_network = [
+    for worker_index in range(var.kubernetes_cluster.num_workers) :
+      format("%s.%s.0/24",
+        join(".", slice(split(".", var.kubernetes_cluster.pod_network.cidr), 0, 2)), worker_index)
+  ]
 }
 
 data "template_file" "kubernetes_worker_cloudinit" {
 
   count = var.kubernetes_cluster.num_workers
 
-  template = file(format("%s/cloudinit/k8s-worker/userdata.yml.tpl", path.module))
+  template = file(format("%s/cloudinit/k8s-worker.yml.tpl", path.module))
 
   vars = {
     hostname   = format("%s%02d", var.kubernetes_worker.hostname, count.index)
     fqdn       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
-    ssh_pubkey = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
+    ssh_pubkey = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
 
-    kube_version             = var.kubernetes_cluster.version
-    crio_version             = var.kubernetes_cluster.crio_version
-    kube_pod_network_cidr    = var.kubernetes_cluster.pod_network.cidr
-    kube_root_ca_certificate = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
-    kubelet_certificate      = base64encode(element(tls_locally_signed_cert.kubelet.*.cert_pem, count.index))
-    kubelet_private_key      = base64encode(element(tls_private_key.kubelet.*.private_key_pem, count.index))
-    kubeconfig_kubelet       = base64encode(element(data.template_file.kubeconfig_kubelet.*.rendered, count.index))
-    kube_dns_server          = var.kubernetes_cluster.dns_server
-    kubeconfig_kube_proxy    = base64encode(data.template_file.kubeconfig_kube_proxy.rendered)
+    kube_version              = var.kubernetes_cluster.version
+    crio_version              = var.kubernetes_cluster.crio_version
+    kube_pod_network_cidr     = var.kubernetes_cluster.pod_network.cidr
+    kube_hostpod_network_cidr = element(local.kubernetes_workers_hostpod_network, count.index)
+    kube_root_ca_certificate  = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
+    kubelet_certificate       = base64encode(element(tls_locally_signed_cert.kubelet.*.cert_pem, count.index))
+    kubelet_private_key       = base64encode(element(tls_private_key.kubelet.*.private_key_pem, count.index))
+    kubeconfig_kubelet        = base64encode(element(data.template_file.kubeconfig_kubelet.*.rendered, count.index))
+    kube_dns_server           = var.kubernetes_cluster.dns_server
+    kubeconfig_kube_proxy     = base64encode(data.template_file.kubeconfig_kube_proxy.rendered)
   }
 }
 

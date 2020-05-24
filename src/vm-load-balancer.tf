@@ -8,7 +8,7 @@ data "template_file" "load_balancer_ignition" {
 
   vars = {
     fqdn             = format("%s.%s", var.load_balancer.hostname, var.dns.internal_zone.domain)
-    ssh_pubkey       = trimspace(file(format("%s/ssh/maintuser/id_rsa.pub", path.module)))
+    ssh_pubkey       = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
     ha_proxy_version = var.load_balancer.ha_proxy_version
     ha_proxy_max_cpu = format("%.3f", var.load_balancer.vcpu)
     ha_proxy_max_mem = format("%dm", var.load_balancer.memory)

@@ -17,7 +17,7 @@ make requirements
 
 === Setup Libvirt
 
-Use `+virsh+` command utility to configure libvirt.
+Use `virsh` command utility to configure libvirt.
 
 [source,bash]
 ----
@@ -33,7 +33,7 @@ virsh version --daemon
 
 ==== QEMU permissions
 
-The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged. Set user and password in `+/etc/libvirt/qemu.conf+` file.
+The provider does not currently support to create volumes with different mode than `root:root` so QEMU agent must run as priviledged. Set user and password in `/etc/libvirt/qemu.conf` file.
 
 [source,bash]
 ----
@@ -54,15 +54,84 @@ systemctl restart libvirtd
 
 Deploy Kubernetes cluster using Terraform.
 
-```
+[source,bash]
+----
 make
+----
+
+Configure `kube-admin` user credentials.
+
+[source,bash]
+----
+export KUBECONFIG="src/kubeconfig/kubeconfig-kube-admin.yml"
+----
+
+Wait until the workers are up and running.
+
+[source,bash]
+----
+kubectl get nodes
+----
+
+Deploy Kubernetes internal DNS.
+
+[source,bash]
+----
+kubectl apply -f src/dns/coredns
+----
+
+== Verify installation
+
+Create an example deployment in `kubernetes-testing` namespace.
+
+[source,bash]
+----
+kubectl apply -f testing
+----
+
+Verify the replicas are running in worker nodes.
+
+[source,bash]
+----
+kubectl get pods -o wide -n kubernetes-testing
+----
+
+Get the pod name to run the testing commands from.
+
+[source,bash]
+----
+POD_NAME=$(kubectl get pods -l component=test -o jsonpath="{.items[0].metadata.name}" -n kubernetes-testing)
+----
+
+=== Internal DNS resolution
+
+[source,bash]
+----
+$ kubectl exec -it ${POD_NAME} -n kubernetes-testing -- ping -c1 kube-dns.kube-system.svc.cluster.local
+PING kube-dns.kube-system.svc.cluster.local (172.0.0.100) 56(84) bytes of data.
+----
+
+=== External traffic
+
+[source,bash]
+----
+$ kubectl exec -it ${POD_NAME} -n kubernetes-testing -- ping -c1 google.es
+PING google.es (216.58.211.35) 56(84) bytes of data.
+----
+
+== Destroy Kubernetes cluster
+
+Destroy Kubernetes cluster using Terraform.
+
+```
+make destroy
 ```
 
 == Troubleshooting
 
 === Terraform
 
-Enable debug mode by setting `+TF_VAR_DEBUG+` to `+true+` before planning terraform changes.
+Enable debug mode by setting `TF_VAR_DEBUG` to `true` before planning terraform changes.
 
 [source,bash]
 ----
@@ -79,15 +148,6 @@ export ETCDCTL_KEY="/etc/etcd/certificates/etcd-member.key"
 
 etcdctl member list -w table
 etcdctl endpoint status --cluster=true -w table
-----
-
-=== Kubernetes
-
-[source,bash]
-----
-export KUBECONFIG="src/kubeconfig/kubeconfig-kube-admin.yml"
-
-kubectl version
 ----
 
 == References
