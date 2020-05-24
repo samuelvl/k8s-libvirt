@@ -82,11 +82,18 @@ kubectl apply -f src/dns/coredns
 
 == Verify installation
 
+Create `kubernetes-testing` namespace.
+
+[source,bash]
+----
+kubectl apply -f testing/namespace.yml
+----
+
 Create an example deployment in `kubernetes-testing` namespace.
 
 [source,bash]
 ----
-kubectl apply -f testing
+kubectl apply -f testing/deployment.yml
 ----
 
 Verify the replicas are running in worker nodes.

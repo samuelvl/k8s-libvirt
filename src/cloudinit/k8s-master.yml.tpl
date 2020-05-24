@@ -289,6 +289,8 @@ runcmd:
   - [ sh, -c, 'echo $(date) | sudo tee -a /root/runcmd.log' ]
   # Apply custom kernel parameters
   - [ sysctl, --system ]
+  # Load kernel modules
+  - [ systemctl, restart, systemd-modules-load ]
   # Download and start the etcd cluster
   - [ mkdir, -p, /var/lib/etcd ]
   - [ curl, -L, "https://storage.googleapis.com/etcd/v${etcd_version}/etcd-v${etcd_version}-linux-amd64.tar.gz", -o, /tmp/etcd.tar.gz ]

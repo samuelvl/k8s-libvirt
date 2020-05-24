@@ -191,6 +191,8 @@ runcmd:
   - [ sh, -c, 'echo $(date) | sudo tee -a /root/runcmd.log' ]
   # Apply custom kernel parameters
   - [ sysctl, --system ]
+  # Load kernel modules
+  - [ systemctl, restart, systemd-modules-load ]
   # Download crictl tool
   - [ curl, -L, -o, /tmp/crictl.tar.gz, "https://github.com/kubernetes-sigs/cri-tools/releases/download/v${crio_version}.0/crictl-v${crio_version}.0-linux-amd64.tar.gz" ]
   - [ tar, -xzvf, /tmp/crictl.tar.gz, -C, /usr/local/bin ]
