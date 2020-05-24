@@ -1,0 +1,95 @@
+== Kubernetes
+
+Deploy a Kubernetes cluster on libvirt using Terraform.
+
+=== Requirements
+
+* Libvirt (tested with 5.6.0 version).
+* Terraform (tested with 0.12.24 version).
+* Libvirt provider for Terraform (tested with 0.6.2 version).
+
+Install requirements.
+
+[source,bash]
+----
+make requirements
+----
+
+=== Setup Libvirt
+
+Use `+virsh+` command utility to configure libvirt.
+
+[source,bash]
+----
+export LIBVIRT_DEFAULT_URI="qemu:///system"
+----
+
+Check if libvirt is running.
+
+[source,bash]
+----
+virsh version --daemon
+----
+
+==== QEMU permissions
+
+The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged. Set user and password in `+/etc/libvirt/qemu.conf+` file.
+
+[source,bash]
+----
+...
+user = "root"
+group = "root"
+...
+----
+
+Restart libvirt daemon.
+
+[source,bash]
+----
+systemctl restart libvirtd
+----
+
+== Deploy Kubernetes cluster
+
+Deploy Kubernetes cluster using Terraform.
+
+```
+make
+```
+
+== Troubleshooting
+
+=== Terraform
+
+Enable debug mode by setting `+TF_VAR_DEBUG+` to `+true+` before planning terraform changes.
+
+[source,bash]
+----
+export TF_VAR_DEBUG="true"
+----
+
+=== ETCD
+
+[source,bash]
+----
+export ETCDCTL_CACERT="/etc/etcd/certificates/etcd-root-ca.pem"
+export ETCDCTL_CERT="/etc/etcd/certificates/etcd-member.pem"
+export ETCDCTL_KEY="/etc/etcd/certificates/etcd-member.key"
+
+etcdctl member list -w table
+etcdctl endpoint status --cluster=true -w table
+----
+
+=== Kubernetes
+
+[source,bash]
+----
+export KUBECONFIG="src/kubeconfig/kubeconfig-kube-admin.yml"
+
+kubectl version
+----
+
+== References
+
+* https://github.com/kelseyhightower/kubernetes-the-hard-way
