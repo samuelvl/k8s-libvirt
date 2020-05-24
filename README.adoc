@@ -105,6 +105,8 @@ POD_NAME=$(kubectl get pods -l component=test -o jsonpath="{.items[0].metadata.n
 
 === Internal DNS resolution
 
+Verify internal DNS resolution.
+
 [source,bash]
 ----
 $ kubectl exec -it ${POD_NAME} -n kubernetes-testing -- ping -c1 kube-dns.kube-system.svc.cluster.local
@@ -112,6 +114,8 @@ PING kube-dns.kube-system.svc.cluster.local (172.0.0.100) 56(84) bytes of data.
 ----
 
 === External traffic
+
+Verify external traffic connectivity from pods.
 
 [source,bash]
 ----
