@@ -86,42 +86,42 @@ write_files:
       WantedBy=multi-user.target
 
   # Kubernetes API Server configuration
-  - path: /etc/kubernetes/certificates/kube-root-ca.pem
+  - path: /var/lib/kubernetes/certificates/kube-root-ca.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${kube_root_ca_certificate}
-  - path: /etc/kubernetes/certificates/kube-root-ca.key
+  - path: /var/lib/kubernetes/certificates/kube-root-ca.key
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kube_root_ca_private_key}
-  - path: /etc/kubernetes/certificates/kube-apiserver.pem
+  - path: /var/lib/kubernetes/certificates/kube-apiserver.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${kube_api_server_certificate}
-  - path: /etc/kubernetes/certificates/kube-apiserver.key
+  - path: /var/lib/kubernetes/certificates/kube-apiserver.key
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kube_api_server_private_key}
-  - path: /etc/kubernetes/certificates/kube-service-accounts.pem
+  - path: /var/lib/kubernetes/certificates/kube-service-accounts.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${kube_service_accounts_certificate}
-  - path: /etc/kubernetes/certificates/kube-service-accounts.key
+  - path: /var/lib/kubernetes/certificates/kube-service-accounts.key
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kube_service_accounts_private_key}
-  - path: /etc/kubernetes/config/encryption-config.yml
+  - path: /etc/kubernetes/encryption-config.yml
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${etcd_encryption_config}
-  - path: /etc/systemd/system/kube-apiserver.service
+  - path: /var/lib/systemd/system/kube-apiserver.service
     owner: root:root
     permissions: "0644"
     content: |
@@ -135,23 +135,23 @@ write_files:
         --bind-address=0.0.0.0 \
         --advertise-address=${ip_address} \
         --apiserver-count=3 \
-        --client-ca-file=/etc/kubernetes/certificates/kube-root-ca.pem \
-        --tls-cert-file=/etc/kubernetes/certificates/kube-apiserver.pem \
-        --tls-private-key-file=/etc/kubernetes/certificates/kube-apiserver.key \
+        --client-ca-file=/var/lib/kubernetes/certificates/kube-root-ca.pem \
+        --tls-cert-file=/var/lib/kubernetes/certificates/kube-apiserver.pem \
+        --tls-private-key-file=/var/lib/kubernetes/certificates/kube-apiserver.key \
         --allow-privileged=true \
         --etcd-cafile=/etc/etcd/certificates/etcd-root-ca.pem \
         --etcd-certfile=/etc/etcd/certificates/etcd-member.pem \
         --etcd-keyfile=/etc/etcd/certificates/etcd-member.key \
         --etcd-servers=${etcd_servers} \
         --kubelet-https=true \
-        --kubelet-certificate-authority=/etc/kubernetes/certificates/kube-root-ca.pem \
-        --kubelet-client-certificate=/etc/kubernetes/certificates/kube-apiserver.pem \
-        --kubelet-client-key=/etc/kubernetes/certificates/kube-apiserver.key \
+        --kubelet-certificate-authority=/var/lib/kubernetes/certificates/kube-root-ca.pem \
+        --kubelet-client-certificate=/var/lib/kubernetes/certificates/kube-apiserver.pem \
+        --kubelet-client-key=/var/lib/kubernetes/certificates/kube-apiserver.key \
         --runtime-config="api/all=true" \
         --service-cluster-ip-range=${kube_svc_network_cidr} \
         --service-node-port-range=${kube_nodeport_range} \
-        --service-account-key-file=/etc/kubernetes/certificates/kube-service-accounts.key \
-        --encryption-provider-config=/etc/kubernetes/config/encryption-config.yml \
+        --service-account-key-file=/var/lib/kubernetes/certificates/kube-service-accounts.key \
+        --encryption-provider-config=/etc/kubernetes/encryption-config.yml \
         --authorization-mode=Node,RBAC \
         --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \
         --event-ttl=1h \
@@ -166,7 +166,7 @@ write_files:
       WantedBy=multi-user.target
 
   # Kubernetes controller manager configuration
-  - path: /etc/kubernetes/auth/kubeconfig-kube-controller-manager.yml
+  - path: /var/lib/kubernetes/auth/kubeconfig-kube-controller-manager.yml
     owner: root:root
     permissions: "0640"
     encoding: b64
@@ -187,13 +187,13 @@ write_files:
         --cluster-name=kubernetes \
         --cluster-cidr=${kube_pod_network_cidr} \
         --allocate-node-cidrs=true \
-        --root-ca-file=/etc/kubernetes/certificates/kube-root-ca.pem \
-        --cluster-signing-cert-file=/etc/kubernetes/certificates/kube-root-ca.pem \
-        --cluster-signing-key-file=/etc/kubernetes/certificates/kube-root-ca.key \
+        --root-ca-file=/var/lib/kubernetes/certificates/kube-root-ca.pem \
+        --cluster-signing-cert-file=/var/lib/kubernetes/certificates/kube-root-ca.pem \
+        --cluster-signing-key-file=/var/lib/kubernetes/certificates/kube-root-ca.key \
         --service-cluster-ip-range=${kube_svc_network_cidr} \
         --use-service-account-credentials=true \
-        --kubeconfig=/etc/kubernetes/auth/kubeconfig-kube-controller-manager.yml \
-        --service-account-private-key-file=/etc/kubernetes/certificates/kube-service-accounts.key
+        --kubeconfig=/var/lib/kubernetes/auth/kubeconfig-kube-controller-manager.yml \
+        --service-account-private-key-file=/var/lib/kubernetes/certificates/kube-service-accounts.key
       Restart=on-failure
       RestartSec=5
 
@@ -201,19 +201,19 @@ write_files:
       WantedBy=multi-user.target
 
   # Kubernetes scheduler configuration
-  - path: /etc/kubernetes/auth/kubeconfig-kube-scheduler.yml
+  - path: /var/lib/kubernetes/auth/kubeconfig-kube-scheduler.yml
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kubeconfig_kube_scheduler}
-  - path: /etc/kubernetes/config/kube-scheduler.yml
+  - path: /etc/kubernetes/kube-scheduler.yml
     owner: root:root
     permissions: "0644"
     content: |
       apiVersion: kubescheduler.config.k8s.io/v1alpha1
       kind: KubeSchedulerConfiguration
       clientConnection:
-        kubeconfig: "/etc/kubernetes/auth/kubeconfig-kube-scheduler.yml"
+        kubeconfig: "/var/lib/kubernetes/auth/kubeconfig-kube-scheduler.yml"
       leaderElection:
         leaderElect: true
   - path: /etc/systemd/system/kube-scheduler.service
@@ -227,7 +227,7 @@ write_files:
       [Service]
       ExecStart=/usr/local/bin/kube-scheduler \
         --v=2 \
-        --config=/etc/kubernetes/config/kube-scheduler.yml
+        --config=/etc/kubernetes/kube-scheduler.yml
       Restart=on-failure
       RestartSec=5
 
@@ -235,12 +235,12 @@ write_files:
       WantedBy=multi-user.target
 
   # Kubernetes configuration manifests
-  - path: /etc/kubernetes/auth/kubeconfig-admin.yml
+  - path: /var/lib/kubernetes/auth/kubeconfig-admin.yml
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kubeconfig_admin}
-  - path: /etc/kubernetes/manifests/cluster-rbac.yml
+  - path: /var/lib/kubernetes/manifests/cluster-rbac.yml
     owner: root:root
     permissions: "0644"
     content: |
@@ -316,7 +316,7 @@ runcmd:
   - [ systemctl, enable, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service ]
   - [ systemctl, start, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service ]
   # Configure Kubernetes cluster
-  - [ kubectl, apply, -f, /etc/kubernetes/manifests, --kubeconfig, /etc/kubernetes/auth/kubeconfig-admin.yml ]
+  - [ kubectl, apply, -f, /var/lib/kubernetes/manifests, --kubeconfig, /var/lib/kubernetes/auth/kubeconfig-admin.yml ]
 
 # Written to /var/log/cloud-init-output.log
 final_message: "The system is finall up, after $UPTIME seconds"

@@ -35,7 +35,6 @@ packages:
   - conntrack
   - ipset
   - cri-o
-
 write_files:
   # Networking configuration
   - path: /etc/sysctl.d/99-enable-ip-forwarding.conf
@@ -78,27 +77,27 @@ write_files:
           }
       }
   # Kubelet configuration
-  - path: /etc/kubernetes/certificates/kube-root-ca.pem
+  - path: /var/lib/kubernetes/certificates/kube-root-ca.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${kube_root_ca_certificate}
-  - path: /etc/kubernetes/certificates/kubelet.pem
+  - path: /var/lib/kubernetes/certificates/kubelet.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${kubelet_certificate}
-  - path: /etc/kubernetes/certificates/kubelet.key
+  - path: /var/lib/kubernetes/certificates/kubelet.key
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kubelet_private_key}
-  - path: /etc/kubernetes/auth/kubeconfig-kubelet.yml
+  - path: /var/lib/kubernetes/auth/kubeconfig-kubelet.yml
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kubeconfig_kubelet}
-  - path: /etc/kubernetes/config/kubelet.yml
+  - path: /etc/kubernetes/kubelet.yml
     owner: root:root
     permissions: "0644"
     content: |
@@ -116,9 +115,9 @@ write_files:
         webhook:
           enabled: true
         x509:
-          clientCAFile: /etc/kubernetes/certificates/kube-root-ca.pem
-      tlsCertFile: /etc/kubernetes/certificates/kubelet.pem
-      tlsPrivateKeyFile: /etc/kubernetes/certificates/kubelet.key
+          clientCAFile: /var/lib/kubernetes/certificates/kube-root-ca.pem
+      tlsCertFile: /var/lib/kubernetes/certificates/kubelet.pem
+      tlsPrivateKeyFile: /var/lib/kubernetes/certificates/kubelet.key
       authorization:
         mode: Webhook
       runtimeRequestTimeout: 15m
@@ -136,8 +135,8 @@ write_files:
       ExecStart=/usr/local/bin/kubelet \
         --v=2 \
         --hostname-override=${hostname} \
-        --config=/etc/kubernetes/config/kubelet.yml \
-        --kubeconfig=/etc/kubernetes/auth/kubeconfig-kubelet.yml \
+        --config=/etc/kubernetes/kubelet.yml \
+        --kubeconfig=/var/lib/kubernetes/auth/kubeconfig-kubelet.yml \
         --container-runtime=remote \
         --container-runtime-endpoint=/var/run/crio/crio.sock \
         --node-labels=node.kubernetes.io/worker \
@@ -150,12 +149,12 @@ write_files:
       [Install]
       WantedBy=multi-user.target
   # Kubernetes proxy configuration
-  - path: /etc/kubernetes/auth/kubeconfig-kube-proxy.yml
+  - path: /var/lib/kubernetes/auth/kubeconfig-kube-proxy.yml
     owner: root:root
     permissions: "0640"
     encoding: b64
     content: ${kubeconfig_kube_proxy}
-  - path: /etc/kubernetes/config/kube-proxy.yml
+  - path: /etc/kubernetes/kube-proxy.yml
     owner: root:root
     permissions: "0644"
     content: |
@@ -164,7 +163,7 @@ write_files:
       mode: iptables
       clusterCIDR: ${kube_pod_network_cidr}
       clientConnection:
-        kubeconfig: /etc/kubernetes/auth/kubeconfig-kube-proxy.yml
+        kubeconfig: /var/lib/kubernetes/auth/kubeconfig-kube-proxy.yml
   - path: /etc/systemd/system/kube-proxy.service
     owner: root:root
     permissions: "0644"
@@ -175,7 +174,7 @@ write_files:
 
       [Service]
       ExecStart=/usr/local/bin/kube-proxy \
-        --config=/etc/kubernetes/config/kube-proxy.yml
+        --config=/etc/kubernetes/kube-proxy.yml
       Restart=on-failure
       RestartSec=5
 
