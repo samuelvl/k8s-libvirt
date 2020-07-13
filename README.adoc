@@ -17,7 +17,7 @@ make require
 
 === Setup Libvirt
 
-Use `virsh` command utility to configure libvirt.
+Use `+virsh+` command utility to configure libvirt.
 
 [source,bash]
 ----
@@ -33,7 +33,7 @@ virsh version --daemon
 
 ==== QEMU permissions
 
-The provider does not currently support to create volumes with different mode than `root:root` so QEMU agent must run as priviledged. Set user and password in `/etc/libvirt/qemu.conf` file.
+The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged. Set user and password in `+/etc/libvirt/qemu.conf+` file.
 
 [source,bash]
 ----
@@ -59,7 +59,7 @@ Deploy Kubernetes cluster using Terraform.
 make
 ----
 
-Configure `kube-admin` user credentials.
+Configure `+kube-admin+` user credentials.
 
 [source,bash]
 ----
@@ -73,6 +73,8 @@ Wait until the workers are up and running.
 kubectl get nodes
 ----
 
+=== DNS
+
 Deploy Kubernetes internal DNS.
 
 [source,bash]
@@ -82,18 +84,18 @@ kubectl apply -f src/dns/coredns
 
 == Verify installation
 
-Create `kubernetes-testing` namespace.
+Create the `+kubernetes-testing+` namespace.
 
 [source,bash]
 ----
 kubectl apply -f testing/namespace.yml
 ----
 
-Create an example deployment in `kubernetes-testing` namespace.
+Create an example application in `+kubernetes-testing+` namespace.
 
 [source,bash]
 ----
-kubectl apply -f testing/deployment.yml
+kubectl apply -f testing
 ----
 
 Verify the replicas are running in worker nodes.
@@ -142,7 +144,7 @@ make clean
 
 === Terraform
 
-Enable debug mode by setting `TF_VAR_DEBUG` to `true` before planning terraform changes.
+Enable debug mode by setting `+TF_VAR_DEBUG+` to `+true+` before planning terraform changes.
 
 [source,bash]
 ----
