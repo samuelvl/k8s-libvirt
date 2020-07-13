@@ -2,11 +2,6 @@ apiVersion: v1
 kind: Config
 current-context: ${kube_cluster_id}
 preferences: {}
-contexts:
-  - name: ${kube_cluster_id}
-    context:
-      cluster: kubernetes
-      user: ${kube_user}
 clusters:
   - name: kubernetes
     cluster:
@@ -17,3 +12,8 @@ users:
     user:
       client-certificate-data: ${kube_user_certificate}
       client-key-data: ${kube_user_private_key}
+contexts:
+  - name: ${kube_cluster_id}
+    context:
+      cluster: kubernetes
+      user: ${kube_user}
