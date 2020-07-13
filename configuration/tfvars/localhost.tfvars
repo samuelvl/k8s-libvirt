@@ -1,6 +1,6 @@
 libvirt = {
   pool      = "kubernetes"
-  pool_path = "/var/lib/libvirt/storage/kubernetes"
+  pool_path = "storage/volumes/kubernetes"
 }
 
 network = {

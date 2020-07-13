@@ -5,7 +5,7 @@ set -o nounset  # exit when use undeclared variables
 set -o pipefail # return the exit code of the last command that threw a non-zero
 
 # Global variables
-TF_VERSION="0.12.24"
+TF_VERSION="0.12.28"
 TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins"
 TF_LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
 CFSSL_VERSION="1.2"

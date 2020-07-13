@@ -41,6 +41,10 @@ override.tf.json
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Libvirt storage
+src/storage/images/*
+src/storage/volumes/*
+
 # Debug files
 kubeconfig-*.yml
 src/dns/coredns/svc.yml
@@ -50,3 +54,6 @@ id_rsa*
 certificate.pem
 certificate.key
 encryption-config.yml
+
+# Keep gitkeep files
+!.gitkeep
