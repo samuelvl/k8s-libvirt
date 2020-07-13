@@ -33,6 +33,7 @@ write_files:
     permissions: "0644"
     content: |
       br_netfilter
+
   # Etcd configuration
   - path: /etc/etcd/certificates/etcd-root-ca.pem
     owner: root:root
