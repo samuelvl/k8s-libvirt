@@ -129,6 +129,8 @@ write_files:
       [Unit]
       Description=Kubernetes API Server
       Documentation=https://github.com/kubernetes/kubernetes
+      After=etcd.service
+      Requires=etcd.service
 
       [Service]
       ExecStart=/usr/local/bin/kube-apiserver \
@@ -179,6 +181,8 @@ write_files:
       [Unit]
       Description=Kubernetes Controller Manager
       Documentation=https://github.com/kubernetes/kubernetes
+      After=kube-apiserver.service
+      Requires=kube-apiserver.service
 
       [Service]
       ExecStart=/usr/local/bin/kube-controller-manager \
@@ -224,6 +228,8 @@ write_files:
       [Unit]
       Description=Kubernetes Scheduler
       Documentation=https://github.com/kubernetes/kubernetes
+      After=kube-apiserver.service
+      Requires=kube-apiserver.service
 
       [Service]
       ExecStart=/usr/local/bin/kube-scheduler \
@@ -280,6 +286,27 @@ write_files:
         - apiGroup: rbac.authorization.k8s.io
           kind: User
           name: Kubernetes
+  - path: /etc/systemd/system/kube-scheduler.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Deploy Kubernetes manifests
+      Documentation=https://github.com/kubernetes/kubernetes
+      After=kube-apiserver.service
+      Requires=kube-apiserver.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/sbin/kubectl \
+        --recursive \
+        --filename=/var/lib/kubernetes/manifests \
+        --kubeconfig=/var/lib/kubernetes/auth/kubeconfig-admin.yml
+      RemainAfterExit=true
+      StandardOutput=journal
+
+      [Install]
+      WantedBy=multi-user.target
 
 # Every boot
 bootcmd:
@@ -300,6 +327,10 @@ runcmd:
   - [ rm, -f, /tmp/etcd.tar.gz ]
   - [ systemctl, enable, etcd.service ]
   - [ systemctl, start, etcd.service ]
+  # Download kubectl client
+  - [ curl, -L, "https://storage.googleapis.com/kubernetes-release/release/v${kube_version}/bin/linux/amd64/kubectl", -o, /usr/local/bin/kubectl ]
+  - [ chmod, +x, /usr/local/bin/kubectl ]
+  - [ ln, -s, /usr/local/bin/kubectl, /usr/local/sbin/kubectl ]
   # Download the API server
   - [ curl, -L, "https://storage.googleapis.com/kubernetes-release/release/v${kube_version}/bin/linux/amd64/kube-apiserver", -o, /usr/local/bin/kube-apiserver ]
   - [ chmod, +x, /usr/local/bin/kube-apiserver ]
@@ -309,15 +340,9 @@ runcmd:
   # Download the kube scheduler
   - [ curl, -L, "https://storage.googleapis.com/kubernetes-release/release/v${kube_version}/bin/linux/amd64/kube-scheduler", -o, /usr/local/bin/kube-scheduler ]
   - [ chmod, +x, /usr/local/bin/kube-scheduler ]
-  # Download kubectl client
-  - [ curl, -L, "https://storage.googleapis.com/kubernetes-release/release/v${kube_version}/bin/linux/amd64/kubectl", -o, /usr/local/bin/kubectl ]
-  - [ chmod, +x, /usr/local/bin/kubectl ]
-  - [ ln, -s, /usr/local/bin/kubectl, /usr/local/sbin/kubectl ]
   # Start the Kubernetes control plane
   - [ systemctl, enable, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service ]
   - [ systemctl, start, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service ]
-  # Configure Kubernetes cluster
-  - [ kubectl, apply, -f, /var/lib/kubernetes/manifests, --kubeconfig, /var/lib/kubernetes/auth/kubeconfig-admin.yml ]
 
 # Written to /var/log/cloud-init-output.log
 final_message: "The system is finall up, after $UPTIME seconds"
