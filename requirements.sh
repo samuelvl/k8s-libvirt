@@ -10,6 +10,7 @@ TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins"
 TF_LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
 CFSSL_VERSION="1.2"
 KUBECTL_VERSION="1.18.0"
+HELM_VERSION="3.3.0-rc.1"
 
 # install_terraform <installation_dir> <terraform_version>
 function install_terraform {
@@ -54,11 +55,11 @@ function install_cfssl {
     cfssl_install_dir=${1}
     cfssl_version=${2}
 
-    curl -s -L https://pkg.cfssl.org/R${cfssl_version}/cfssl_linux-amd64 \
-        --output ${cfssl_install_dir}/cfssl
+    curl -s -L --output ${cfssl_install_dir}/cfssl \
+        https://pkg.cfssl.org/R${cfssl_version}/cfssl_linux-amd64
 
-    curl -s -L https://pkg.cfssl.org/R${cfssl_version}/cfssljson_linux-amd64 \
-        --output ${cfssl_install_dir}/cfssljson
+    curl -s -L --output ${cfssl_install_dir}/cfssljson \
+        https://pkg.cfssl.org/R${cfssl_version}/cfssljson_linux-amd64
 
     chmod +x ${cfssl_install_dir}/cfssl ${cfssl_install_dir}/cfssljson
 }
@@ -68,10 +69,25 @@ function install_kubectl {
     kubectl_install_dir=${1}
     kubectl_version=${2}
 
-    curl -s -L https://storage.googleapis.com/kubernetes-release/release/v${kubectl_version}/bin/linux/amd64/kubectl \
-        --output ${kubectl_install_dir}/kubectl
+    curl -s -L --output ${kubectl_install_dir}/kubectl \
+        https://storage.googleapis.com/kubernetes-release/release/v${kubectl_version}/bin/linux/amd64/kubectl
 
     chmod +x ${kubectl_install_dir}/kubectl
+}
+
+# install_helm <installation_dir> <helm_version>
+function install_helm {
+    helm_install_dir=${1}
+    helm_version=${2}
+    helm_binary="${helm_install_dir}/helm"
+
+    curl -S -L --output ${helm_binary}.tar.gz \
+        https://get.helm.sh/helm-v${helm_version}-linux-amd64.tar.gz
+
+    # Install Helm
+    tar -xvf ${helm_binary}.tar.gz -C ${helm_install_dir} --strip-components=1 linux-amd64/helm
+    chmod +x ${helm_binary}
+    rm -f ${helm_binary}.tar.gz
 }
 
 # Install libvirt
@@ -117,6 +133,16 @@ if ! (which kubectl &> /dev/null); then
     install_kubectl ${HOME}/bin ${KUBECTL_VERSION}
     echo "Successfully installed!"
 else
-    kubectl_current_version=$(kubectl version --client)
-    echo "Kubectl version ${kubectl_current_version} is already installed."
+    kubectl_current_version=$(kubectl version --client --short)
+    echo "Kubectl ${kubectl_current_version} is already installed."
+fi
+
+# Install Helm
+if ! (which helm &> /dev/null); then
+    echo "Installing Helm ${HELM_VERSION}..."
+    install_helm ${HOME}/bin ${HELM_VERSION}
+    echo "Successfully installed!"
+else
+    helm_current_version=$(helm version --short)
+    echo "Helm version ${helm_current_version} is already installed."
 fi
