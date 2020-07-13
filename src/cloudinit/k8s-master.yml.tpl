@@ -35,17 +35,17 @@ write_files:
       br_netfilter
 
   # Etcd configuration
-  - path: /etc/etcd/certificates/etcd-root-ca.pem
+  - path: /var/lib/etcd/certificates/etcd-root-ca.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${etcd_root_ca}
-  - path: /etc/etcd/certificates/etcd-member.pem
+  - path: /var/lib/etcd/certificates/etcd-member.pem
     owner: root:root
     permissions: "0644"
     encoding: b64
     content: ${etcd_member_certificate}
-  - path: /etc/etcd/certificates/etcd-member.key
+  - path: /var/lib/etcd/certificates/etcd-member.key
     owner: root:root
     permissions: "0640"
     encoding: b64
@@ -64,12 +64,12 @@ write_files:
       Type=notify
       ExecStart=/usr/local/bin/etcd \
         --name ${etcd_member_name} \
-        --cert-file=/etc/etcd/certificates/etcd-member.pem \
-        --key-file=/etc/etcd/certificates/etcd-member.key \
-        --peer-cert-file=/etc/etcd/certificates/etcd-member.pem \
-        --peer-key-file=/etc/etcd/certificates/etcd-member.key \
-        --trusted-ca-file=/etc/etcd/certificates/etcd-root-ca.pem \
-        --peer-trusted-ca-file=/etc/etcd/certificates/etcd-root-ca.pem \
+        --cert-file=/var/lib/etcd/certificates/etcd-member.pem \
+        --key-file=/var/lib/etcd/certificates/etcd-member.key \
+        --peer-cert-file=/var/lib/etcd/certificates/etcd-member.pem \
+        --peer-key-file=/var/lib/etcd/certificates/etcd-member.key \
+        --trusted-ca-file=/var/lib/etcd/certificates/etcd-root-ca.pem \
+        --peer-trusted-ca-file=/var/lib/etcd/certificates/etcd-root-ca.pem \
         --peer-client-cert-auth \
         --client-cert-auth \
         --initial-advertise-peer-urls https://${etcd_member_ip}:2380 \
@@ -79,7 +79,7 @@ write_files:
         --initial-cluster-token etcd-cluster-0 \
         --initial-cluster ${etcd_initial_cluster} \
         --initial-cluster-state new \
-        --data-dir=/var/lib/etcd
+        --data-dir=/var/lib/etcd/data
       Restart=on-failure
       RestartSec=5
 
@@ -122,7 +122,7 @@ write_files:
     permissions: "0640"
     encoding: b64
     content: ${etcd_encryption_config}
-  - path: /var/lib/systemd/system/kube-apiserver.service
+  - path: /etc/systemd/system/kube-apiserver.service
     owner: root:root
     permissions: "0644"
     content: |
@@ -142,9 +142,9 @@ write_files:
         --tls-cert-file=/var/lib/kubernetes/certificates/kube-apiserver.pem \
         --tls-private-key-file=/var/lib/kubernetes/certificates/kube-apiserver.key \
         --allow-privileged=true \
-        --etcd-cafile=/etc/etcd/certificates/etcd-root-ca.pem \
-        --etcd-certfile=/etc/etcd/certificates/etcd-member.pem \
-        --etcd-keyfile=/etc/etcd/certificates/etcd-member.key \
+        --etcd-cafile=/var/lib/etcd/certificates/etcd-root-ca.pem \
+        --etcd-certfile=/var/lib/etcd/certificates/etcd-member.pem \
+        --etcd-keyfile=/var/lib/etcd/certificates/etcd-member.key \
         --etcd-servers=${etcd_servers} \
         --kubelet-https=true \
         --kubelet-certificate-authority=/var/lib/kubernetes/certificates/kube-root-ca.pem \
@@ -286,7 +286,7 @@ write_files:
         - apiGroup: rbac.authorization.k8s.io
           kind: User
           name: Kubernetes
-  - path: /etc/systemd/system/kube-scheduler.service
+  - path: /etc/systemd/system/kube-deployer.service
     owner: root:root
     permissions: "0644"
     content: |
@@ -298,7 +298,7 @@ write_files:
 
       [Service]
       Type=oneshot
-      ExecStart=/usr/local/sbin/kubectl \
+      ExecStart=/usr/local/sbin/kubectl apply \
         --recursive \
         --filename=/var/lib/kubernetes/manifests \
         --kubeconfig=/var/lib/kubernetes/auth/kubeconfig-admin.yml
@@ -320,7 +320,7 @@ runcmd:
   # Load kernel modules
   - [ systemctl, restart, systemd-modules-load ]
   # Download and start the etcd cluster
-  - [ mkdir, -p, /var/lib/etcd ]
+  - [ mkdir, -p, /var/lib/etcd/data ]
   - [ curl, -L, "https://storage.googleapis.com/etcd/v${etcd_version}/etcd-v${etcd_version}-linux-amd64.tar.gz", -o, /tmp/etcd.tar.gz ]
   - [ tar, -xzvf, /tmp/etcd.tar.gz, -C, /usr/local/bin, --strip-components=1 ]
   - [ ln, -s, /usr/local/bin/etcdctl, /usr/local/sbin/etcdctl ]
@@ -341,8 +341,8 @@ runcmd:
   - [ curl, -L, "https://storage.googleapis.com/kubernetes-release/release/v${kube_version}/bin/linux/amd64/kube-scheduler", -o, /usr/local/bin/kube-scheduler ]
   - [ chmod, +x, /usr/local/bin/kube-scheduler ]
   # Start the Kubernetes control plane
-  - [ systemctl, enable, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service ]
-  - [ systemctl, start, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service ]
+  - [ systemctl, enable, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service, kube-deployer.service ]
+  - [ systemctl, start, kube-apiserver.service, kube-controller-manager.service, kube-scheduler.service, kube-deployer.service ]
 
 # Written to /var/log/cloud-init-output.log
 final_message: "The system is finall up, after $UPTIME seconds"
