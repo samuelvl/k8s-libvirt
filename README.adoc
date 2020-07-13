@@ -79,17 +79,11 @@ Deploy Kubernetes internal DNS.
 
 [source,bash]
 ----
-kubectl apply -f src/dns/coredns
+helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm install coredns --namespace=kube-system stable/coredns
 ----
 
 == Verify installation
-
-Create the `+kubernetes-testing+` namespace.
-
-[source,bash]
-----
-kubectl apply -f testing/namespace.yml
-----
 
 Create an example application in `+kubernetes-testing+` namespace.
 
@@ -98,21 +92,21 @@ Create an example application in `+kubernetes-testing+` namespace.
 kubectl apply -f testing
 ----
 
-Verify the replicas are running in worker nodes.
+Verify the pods are running in worker nodes.
 
 [source,bash]
 ----
 kubectl get pods -o wide -n kubernetes-testing
 ----
 
-Get the pod name to run the testing commands from.
+Get the pod name to run the testing commands in.
 
 [source,bash]
 ----
 POD_NAME=$(kubectl get pods -l component=test -o jsonpath="{.items[0].metadata.name}" -n kubernetes-testing)
 ----
 
-=== Internal DNS resolution
+=== DNS resolution
 
 Verify internal DNS resolution.
 
@@ -122,9 +116,9 @@ $ kubectl exec -it ${POD_NAME} -n kubernetes-testing -- ping -c1 kube-dns.kube-s
 PING kube-dns.kube-system.svc.cluster.local (172.0.0.100) 56(84) bytes of data.
 ----
 
-=== External traffic
+=== Outbound traffic
 
-Verify external traffic connectivity from pods.
+Verify outbound traffic connectivity from pods.
 
 [source,bash]
 ----
@@ -152,6 +146,8 @@ export TF_VAR_DEBUG="true"
 ----
 
 === ETCD
+
+Connect to a master node and run `+etcdctl+` tool to check etcd status.
 
 [source,bash]
 ----

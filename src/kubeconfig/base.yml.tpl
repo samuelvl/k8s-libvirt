@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Config
-current-context: default
+current-context: ${kube_cluster_id}
 preferences: {}
 contexts:
-  - name: default
+  - name: ${kube_cluster_id}
     context:
       cluster: kubernetes
       user: ${kube_user}

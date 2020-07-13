@@ -3,6 +3,7 @@ data "template_file" "kubeconfig_kube_proxy" {
   template = file(format("%s/kubeconfig/base.yml.tpl", path.module))
 
   vars = {
+    kube_cluster_id                = "libvirt"
     kube_api_server                = format("https://api.%s:6443", var.dns.internal_zone.domain)
     kube_api_server_ca_certificate = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
     kube_user                      = "system:kube-proxy"

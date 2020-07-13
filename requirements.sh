@@ -10,6 +10,7 @@ TF_PROVIDERS_DIR="${HOME}/.terraform.d/plugins"
 TF_LIBVIRT_PROVIDER_VERSION="v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Fedora_28.x86_64.tar.gz"
 CFSSL_VERSION="1.2"
 KUBECTL_VERSION="1.18.0"
+KREW_VERSION="0.3.4"
 HELM_VERSION="3.3.0-rc.1"
 
 # install_terraform <installation_dir> <terraform_version>
@@ -75,6 +76,26 @@ function install_kubectl {
     chmod +x ${kubectl_install_dir}/kubectl
 }
 
+# install_krew <installation_dir> <krew_version>
+function install_krew {
+    krew_install_dir=${1}
+    krew_version=${2}
+    krew_binary="${krew_install_dir}/kubectl-krew"
+
+    curl -S -L --output ${krew_binary}.tar.gz \
+        https://github.com/kubernetes-sigs/krew/releases/download/v${krew_version}/krew.tar.gz
+
+    # Install krew
+    tar -xvf ${krew_binary}.tar.gz -C ${krew_install_dir} ./krew-linux_amd64
+    mv ${krew_install_dir}/krew-linux_amd64 ${krew_binary}
+    chmod +x ${krew_binary}
+    rm -f ${krew_binary}.tar.gz
+
+    # Change plugins installation directory
+    mkdir -p ${HOME}/.krew
+    ln -s ${krew_install_dir} ${HOME}/.krew/bin
+}
+
 # install_helm <installation_dir> <helm_version>
 function install_helm {
     helm_install_dir=${1}
@@ -135,6 +156,16 @@ if ! (which kubectl &> /dev/null); then
 else
     kubectl_current_version=$(kubectl version --client --short)
     echo "Kubectl ${kubectl_current_version} is already installed."
+fi
+
+# Install Krew
+if ! (which kubectl-krew &> /dev/null); then
+    echo "Installing krew ${KREW_VERSION}..."
+    install_krew ${HOME}/bin ${KREW_VERSION}
+    echo "Successfully installed!"
+else
+    krew_current_version=$(kubectl-krew version | grep GitTag | awk '{print $2}')
+    echo "krew version ${krew_current_version} is already installed."
 fi
 
 # Install Helm

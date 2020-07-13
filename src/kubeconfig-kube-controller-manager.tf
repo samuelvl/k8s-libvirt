@@ -3,6 +3,7 @@ data "template_file" "kubeconfig_kube_controller_manager" {
   template = file(format("%s/kubeconfig/base.yml.tpl", path.module))
 
   vars = {
+    kube_cluster_id                = "libvirt"
     kube_api_server                = "https://127.0.0.1:6443"
     kube_api_server_ca_certificate = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
     kube_user                      = "system:kube-controller-manager"
