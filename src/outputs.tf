@@ -1,13 +1,10 @@
 # Load balancer
 output "kubernetes_load_balancer" {
   value = {
-    fqdn       = libvirt_domain.load_balancer.network_interface.0.hostname
-    ip_address = libvirt_domain.load_balancer.network_interface.0.addresses.0
-    ssh        = formatlist("ssh -i %s maintuser@%s",
-      local_file.ssh_maintuser_private_key.filename,
-      libvirt_domain.load_balancer.network_interface.0.hostname)
-    metrics   =  format("http://%s:5555/haproxy?stats",
-      libvirt_domain.load_balancer.network_interface.0.hostname)
+    fqdn    = local.load_balancer.fqdn
+    ip      = local.load_balancer.ip
+    ssh     = formatlist("ssh -i src/ssh/maintuser/id_rsa maintuser@%s", local.load_balancer.fqdn)
+    metrics =  format("http://%s:5555/haproxy?stats", local.load_balancer.fqdn)
   }
 }
 
@@ -21,21 +18,17 @@ output "kubernetes_cluster" {
 # Kubernetes masters
 output "kubernetes_masters" {
   value = {
-    fqdn       = libvirt_domain.kubernetes_master.*.network_interface.0.hostname
-    ip_address = libvirt_domain.kubernetes_master.*.network_interface.0.addresses.0
-    ssh        = formatlist("ssh -i %s maintuser@%s",
-      local_file.ssh_maintuser_private_key.filename,
-      libvirt_domain.kubernetes_master.*.network_interface.0.hostname)
+    fqdn = local.kubernetes_masters.*.fqdn
+    ip   = local.kubernetes_masters.*.ip
+    ssh  = formatlist("ssh -i src/ssh/maintuser/id_rsa maintuser@%s", local.kubernetes_masters.*.fqdn)
   }
 }
 
 # Kubernetes workers
 output "kubernetes_workers" {
   value = {
-    fqdn       = libvirt_domain.kubernetes_worker.*.network_interface.0.hostname
-    ip_address = libvirt_domain.kubernetes_worker.*.network_interface.0.addresses.0
-    ssh        = formatlist("ssh -i %s maintuser@%s",
-      local_file.ssh_maintuser_private_key.filename,
-      libvirt_domain.kubernetes_worker.*.network_interface.0.hostname)
+    fqdn       = local.kubernetes_workers.*.fqdn
+    ip_address = local.kubernetes_workers.*.ip
+    ssh        = formatlist("ssh -i src/ssh/maintuser/id_rsa maintuser@%s", local.kubernetes_workers.*.fqdn)
   }
 }
