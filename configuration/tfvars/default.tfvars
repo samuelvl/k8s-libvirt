@@ -1,5 +1,5 @@
 load_balancer = {
-  hostname         = "lb"
+  id               = "lb"
   base_img         = "src/storage/images/fedora-coreos-32.20200629.3.0.x86_64.qcow2"
   vcpu             = 1
   memory           = 512
@@ -7,6 +7,7 @@ load_balancer = {
 }
 
 kubernetes_master = {
+  id       = "master"
   hostname = "master"
   base_img = "src/storage/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2"
   vcpu     = 2
@@ -14,7 +15,7 @@ kubernetes_master = {
 }
 
 kubernetes_worker = {
-  hostname = "worker"
+  id       = "worker"
   base_img = "src/storage/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2"
   vcpu     = 1
   memory   = 1024

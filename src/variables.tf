@@ -37,18 +37,6 @@ variable "dns" {
   })
 }
 
-# Load balancer specification
-variable "load_balancer" {
-  description = "Configuration for load balancer virtual machine"
-  type = object({
-    hostname         = string,
-    base_img         = string,
-    vcpu             = number,
-    memory           = number,
-    ha_proxy_version = string
-  })
-}
-
 # Kubernetes cluster configuration
 variable "kubernetes_cluster" {
   description = "Configuration for Kubernetes cluster"
@@ -56,7 +44,6 @@ variable "kubernetes_cluster" {
     num_masters     = number,
     num_workers     = number,
     version         = string,
-    etcd_version    = string,
     crio_version    = string,
     dns_server      = string,
     node_port_range = string,
@@ -71,11 +58,41 @@ variable "kubernetes_cluster" {
   })
 }
 
+# ETCD cluster configuration
+variable "etcd_cluster" {
+  description = "Configuration for ETCD cluster"
+  type = object({
+    version = string
+  })
+}
+
+# Kubernetes inventory
+variable "kubernetes_inventory" {
+  description = "List of Kubernetes cluster nodes"
+  type        = map(object({
+    ip  = string,
+    mac = string
+  }))
+}
+
+
+# Load balancer specification
+variable "load_balancer" {
+  description = "Configuration for load balancer virtual machine"
+  type = object({
+    id               = string,
+    base_img         = string,
+    vcpu             = number,
+    memory           = number,
+    ha_proxy_version = string
+  })
+}
+
 # Kubernetes masters specification
 variable "kubernetes_master" {
   description = "Configuration for Kubernetes master virtual machine"
   type = object({
-    hostname = string,
+    id       = string,
     base_img = string,
     vcpu     = number,
     memory   = number
@@ -86,18 +103,9 @@ variable "kubernetes_master" {
 variable "kubernetes_worker" {
   description = "Configuration for Kubernetes worker virtual machine"
   type = object({
-    hostname = string,
+    id       = string,
     base_img = string,
     vcpu     = number,
     memory   = number
   })
-}
-
-# Kubernetes inventory
-variable "kubernetes_inventory" {
-  description = "List of Kubernetes cluster nodes"
-  type        = map(object({
-    ip_address  = string,
-    mac_address = string
-  }))
 }

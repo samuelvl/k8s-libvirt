@@ -1,13 +1,17 @@
 locals {
-  load_balancer_ip  = lookup(var.kubernetes_inventory, var.load_balancer.hostname).ip_address
-  load_balancer_mac = lookup(var.kubernetes_inventory, var.load_balancer.hostname).mac_address
+  load_balancer = {
+    hostname = var.load_balancer.id
+    fqdn     = format("%s.%s", var.load_balancer.id, var.dns.internal_zone.domain)
+    ip       = lookup(var.kubernetes_inventory, var.load_balancer.id).ip
+    mac      = lookup(var.kubernetes_inventory, var.load_balancer.id).mac
+  }
 }
 
 data "template_file" "load_balancer_ignition" {
   template = file(format("%s/ignition/load-balancer/ignition.json.tpl", path.module))
 
   vars = {
-    fqdn             = format("%s.%s", var.load_balancer.hostname, var.dns.internal_zone.domain)
+    fqdn             = local.load_balancer.fqdn
     ssh_pubkey       = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
     ha_proxy_version = var.load_balancer.ha_proxy_version
     ha_proxy_max_cpu = format("%.3f", var.load_balancer.vcpu)
@@ -16,27 +20,27 @@ data "template_file" "load_balancer_ignition" {
 }
 
 resource "libvirt_ignition" "load_balancer" {
-  name    = format("%s.ign", var.load_balancer.hostname)
+  name    = format("%s.ign", local.load_balancer.hostname)
   pool    = libvirt_pool.kubernetes.name
   content = data.template_file.load_balancer_ignition.rendered
 }
 
 resource "libvirt_volume" "load_balancer_image" {
-  name   = format("%s-baseimg.qcow2", var.load_balancer.hostname)
+  name   = format("%s-baseimg.qcow2", local.load_balancer.hostname)
   pool   = libvirt_pool.kubernetes.name
   source = var.load_balancer.base_img
   format = "qcow2"
 }
 
 resource "libvirt_volume" "load_balancer" {
-  name           = format("%s-volume.qcow2", var.load_balancer.hostname)
+  name           = format("%s-volume.qcow2", local.load_balancer.hostname)
   pool           = libvirt_pool.kubernetes.name
   base_volume_id = libvirt_volume.load_balancer_image.id
   format         = "qcow2"
 }
 
 resource "libvirt_domain" "load_balancer" {
-  name   = format("k8s-%s", var.load_balancer.hostname)
+  name   = format("k8s-%s", local.load_balancer.hostname)
   memory = var.load_balancer.memory
   vcpu   = var.load_balancer.vcpu
 
@@ -49,9 +53,9 @@ resource "libvirt_domain" "load_balancer" {
 
   network_interface {
     network_name   = libvirt_network.kubernetes.name
-    hostname       = format("%s.%s", var.load_balancer.hostname, var.dns.internal_zone.domain)
-    addresses      = [ local.load_balancer_ip ]
-    mac            = local.load_balancer_mac
+    hostname       = local.load_balancer.fqdn
+    addresses      = [ local.load_balancer.ip ]
+    mac            = local.load_balancer.mac
     wait_for_lease = true
   }
 

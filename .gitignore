@@ -47,7 +47,7 @@ src/storage/volumes/*
 
 # Debug files
 kubeconfig-*.yml
-src/dns/coredns/svc.yml
+src/dns/coredns/values.yaml
 
 # Confidential data
 id_rsa*

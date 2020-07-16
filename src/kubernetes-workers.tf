@@ -1,16 +1,16 @@
 locals {
-  kubernetes_workers_ip = [
-    for worker_index in range(var.kubernetes_cluster.num_workers) :
-      lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.hostname, worker_index)).ip_address
-  ]
-  kubernetes_workers_mac = [
-    for worker_index in range(var.kubernetes_cluster.num_workers) :
-      lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.hostname, worker_index)).mac_address
-  ]
-  kubernetes_workers_hostpod_network = [
-    for worker_index in range(var.kubernetes_cluster.num_workers) :
-      format("%s.%s.0/24",
-        join(".", slice(split(".", var.kubernetes_cluster.pod_network.cidr), 0, 2)), worker_index)
+  kubernetes_workers = [
+    for index in range(var.kubernetes_cluster.num_workers):
+      {
+        hostname     = format("%s%02d", var.kubernetes_worker.id, index)
+        fqdn         = format("%s%02d.%s", var.kubernetes_worker.id, index, var.dns.internal_zone.domain)
+        ip           = lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.id, index)).ip
+        mac          = lookup(var.kubernetes_inventory, format("%s%02d", var.kubernetes_worker.id, index)).mac
+        hostpod_cidr = format("%s.%s.0/24",
+                         join(".", slice(split(".", var.kubernetes_cluster.pod_network.cidr), 0, 2)),
+                         index
+                       )
+      }
   ]
 }
 
@@ -21,14 +21,13 @@ data "template_file" "kubernetes_worker_cloudinit" {
   template = file(format("%s/cloudinit/k8s-worker.yml.tpl", path.module))
 
   vars = {
-    hostname   = format("%s%02d", var.kubernetes_worker.hostname, count.index)
-    fqdn       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
-    ssh_pubkey = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
-
+    hostname                  = local.kubernetes_workers[count.index].hostname
+    fqdn                      = local.kubernetes_workers[count.index].fqdn
+    ssh_pubkey                = trimspace(tls_private_key.ssh_maintuser.public_key_openssh)
     kube_version              = var.kubernetes_cluster.version
     crio_version              = var.kubernetes_cluster.crio_version
     kube_pod_network_cidr     = var.kubernetes_cluster.pod_network.cidr
-    kube_hostpod_network_cidr = element(local.kubernetes_workers_hostpod_network, count.index)
+    kube_hostpod_network_cidr = local.kubernetes_workers[count.index].hostpod_cidr
     kube_root_ca_certificate  = base64encode(tls_self_signed_cert.kube_root_ca.cert_pem)
     kubelet_certificate       = base64encode(element(tls_locally_signed_cert.kubelet.*.cert_pem, count.index))
     kubelet_private_key       = base64encode(element(tls_private_key.kubelet.*.private_key_pem, count.index))
@@ -42,7 +41,7 @@ resource "libvirt_cloudinit_disk" "kubernetes_worker" {
 
   count = var.kubernetes_cluster.num_workers
 
-  name      = format("cloudinit-%s%02d.qcow2", var.kubernetes_worker.hostname, count.index)
+  name      = format("cloudinit-%s.qcow2", local.kubernetes_workers[count.index].hostname)
   pool      = libvirt_pool.kubernetes.name
   user_data = element(data.template_file.kubernetes_worker_cloudinit.*.rendered, count.index)
 }
@@ -51,7 +50,7 @@ resource "libvirt_volume" "kubernetes_worker_image" {
 
   count = var.kubernetes_cluster.num_workers
 
-  name   = format("%s%02d-baseimg.qcow2", var.kubernetes_worker.hostname, count.index)
+  name   = format("%s-baseimg.qcow2", local.kubernetes_workers[count.index].hostname)
   pool   = libvirt_pool.kubernetes.name
   source = var.kubernetes_worker.base_img
   format = "qcow2"
@@ -61,7 +60,7 @@ resource "libvirt_volume" "kubernetes_worker" {
 
   count = var.kubernetes_cluster.num_workers
 
-  name           = format("%s%02d-volume.qcow2", var.kubernetes_worker.hostname, count.index)
+  name           = format("%s-volume.qcow2", local.kubernetes_workers[count.index].hostname)
   pool           = libvirt_pool.kubernetes.name
   base_volume_id = element(libvirt_volume.kubernetes_worker_image.*.id, count.index)
   format         = "qcow2"
@@ -71,7 +70,7 @@ resource "libvirt_domain" "kubernetes_worker" {
 
   count = var.kubernetes_cluster.num_workers
 
-  name   = format("k8s-%s%02d", var.kubernetes_worker.hostname, count.index)
+  name   = format("k8s-%s", local.kubernetes_workers[count.index].hostname)
   memory = var.kubernetes_worker.memory
   vcpu   = var.kubernetes_worker.vcpu
 
@@ -84,9 +83,9 @@ resource "libvirt_domain" "kubernetes_worker" {
 
   network_interface {
     network_name   = libvirt_network.kubernetes.name
-    hostname       = format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
-    addresses      = [ element(local.kubernetes_workers_ip, count.index) ]
-    mac            = element(local.kubernetes_workers_mac, count.index)
+    hostname       = format("%s.%s", local.kubernetes_workers[count.index].hostname, var.dns.internal_zone.domain)
+    addresses      = [ local.kubernetes_workers[count.index].ip ]
+    mac            = local.kubernetes_workers[count.index].mac
     wait_for_lease = true
   }
 

@@ -14,7 +14,7 @@ resource "tls_cert_request" "kubelet" {
   key_algorithm   = element(tls_private_key.kubelet.*.algorithm, count.index)
 
   subject {
-    common_name         = format("system:node:%s%02d", var.kubernetes_worker.hostname, count.index)
+    common_name         = format("system:node:%s", local.kubernetes_workers[count.index].hostname)
     organization        = "system:nodes"
     organizational_unit = "Kubernetes The Hard Way"
     country             = "ES"
@@ -23,12 +23,12 @@ resource "tls_cert_request" "kubelet" {
   }
 
   dns_names = [
-    format("%s%02d", var.kubernetes_worker.hostname, count.index),
-    format("%s%02d.%s", var.kubernetes_worker.hostname, count.index, var.dns.internal_zone.domain)
+    format("%s", local.kubernetes_workers[count.index].hostname),
+    format("%s.%s", local.kubernetes_workers[count.index].hostname, var.dns.internal_zone.domain)
   ]
 
   ip_addresses = [
-    element(local.kubernetes_workers_ip, count.index)
+    local.kubernetes_workers[count.index].ip
   ]
 }
 
@@ -56,8 +56,8 @@ resource "local_file" "kubelet_certificate_pem" {
 
   count = var.kubernetes_cluster.num_workers
 
-  filename             = format("%s/ca/clients/kubelet/%s%02d/certificate.pem",
-    path.module, var.kubernetes_worker.hostname, count.index)
+  filename             = format("%s/ca/clients/kubelet/%s/certificate.pem",
+    path.module, local.kubernetes_workers[count.index].hostname)
   content              = element(tls_locally_signed_cert.kubelet.*.cert_pem, count.index)
   file_permission      = "0600"
   directory_permission = "0700"
@@ -67,8 +67,8 @@ resource "local_file" "kubelet_private_key_pem" {
 
   count = var.kubernetes_cluster.num_workers
 
-  filename             = format("%s/ca/clients/kubelet/%s%02d/certificate.key",
-    path.module, var.kubernetes_worker.hostname, count.index)
+  filename             = format("%s/ca/clients/kubelet/%s/certificate.key",
+    path.module, local.kubernetes_workers[count.index].hostname)
   content              = element(tls_private_key.kubelet.*.private_key_pem, count.index)
   file_permission      = "0600"
   directory_permission = "0700"

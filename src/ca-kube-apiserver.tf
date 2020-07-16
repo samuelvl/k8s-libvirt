@@ -29,13 +29,13 @@ resource "tls_cert_request" "kube_apiserver" {
     "kubernetes.default.svc.cluster",
     "kubernetes.svc.cluster.local",
     format("api.%s", var.dns.internal_zone.domain),
-    format("%s%02d", var.kubernetes_master.hostname, count.index),
-    format("%s%02d.%s", var.kubernetes_master.hostname, count.index, var.dns.internal_zone.domain)
+    format("%s", local.kubernetes_masters[count.index].hostname),
+    format("%s.%s", local.kubernetes_masters[count.index].hostname, var.dns.internal_zone.domain)
   ]
 
   ip_addresses = [
     "127.0.0.1",
-    element(local.kubernetes_masters_ip, count.index),
+    local.kubernetes_masters[count.index].ip,
     var.kubernetes_cluster.svc_network.gateway
   ]
 }
@@ -64,8 +64,8 @@ resource "local_file" "kube_apiserver_certificate_pem" {
 
   count = var.DEBUG ? var.kubernetes_cluster.num_masters : 0
 
-  filename             = format("%s/ca/clients/kube-apiserver/%s%02d/certificate.pem",
-    path.module, var.kubernetes_worker.hostname, count.index)
+  filename             = format("%s/ca/clients/kube-apiserver/%s/certificate.pem",
+    path.module, local.kubernetes_workers[count.index].hostname)
   content              = element(tls_locally_signed_cert.kube_apiserver.*.cert_pem, count.index)
   file_permission      = "0600"
   directory_permission = "0700"
@@ -75,8 +75,8 @@ resource "local_file" "kube_apiserver_private_key_pem" {
 
   count = var.DEBUG ? var.kubernetes_cluster.num_masters : 0
 
-  filename             = format("%s/ca/clients/kube-apiserver/%s%02d/certificate.key",
-    path.module, var.kubernetes_worker.hostname, count.index)
+  filename             = format("%s/ca/clients/kube-apiserver/%s/certificate.key",
+    path.module, local.kubernetes_workers[count.index].hostname)
   content              = element(tls_private_key.kube_apiserver.*.private_key_pem, count.index)
   file_permission      = "0600"
   directory_permission = "0700"

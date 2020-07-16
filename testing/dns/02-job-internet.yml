@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: internet
+  namespace: kubernetes-dns-testing
+  labels:
+    component: test
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: shell
+          image: gcr.io/kubernetes-e2e-test-images/dnsutils:1.3
+          command: [ "/bin/sh" ]
+          args:
+            - -c
+            - dig -t A +short www.google.com
+          securityContext:
+            capabilities:
+              add:
+                - NET_RAW

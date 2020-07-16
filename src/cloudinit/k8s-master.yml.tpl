@@ -298,6 +298,7 @@ write_files:
 
       [Service]
       Type=oneshot
+      ExecStartPre=/bin/sleep 60
       ExecStart=/usr/local/sbin/kubectl apply \
         --recursive \
         --filename=/var/lib/kubernetes/manifests \

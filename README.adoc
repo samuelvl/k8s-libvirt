@@ -80,50 +80,30 @@ Deploy Kubernetes internal DNS.
 [source,bash]
 ----
 helm repo add stable https://kubernetes-charts.storage.googleapis.com
-helm install coredns --namespace=kube-system stable/coredns
+helm install coredns --values=src/dns/coredns/values.yaml --namespace=kube-system stable/coredns
 ----
 
-== Verify installation
+==== Testing
 
-Create an example application in `+kubernetes-testing+` namespace.
+Create an example job in `+kubernetes-dns-testing+` namespace to query CoreDNS server.
 
 [source,bash]
 ----
-kubectl apply -f testing
+kubectl apply -f testing/dns
 ----
-
-Verify the pods are running in worker nodes.
-
-[source,bash]
-----
-kubectl get pods -o wide -n kubernetes-testing
-----
-
-Get the pod name to run the testing commands in.
-
-[source,bash]
-----
-POD_NAME=$(kubectl get pods -l component=test -o jsonpath="{.items[0].metadata.name}" -n kubernetes-testing)
-----
-
-=== DNS resolution
 
 Verify internal DNS resolution.
 
 [source,bash]
 ----
-$ kubectl exec -it ${POD_NAME} -n kubernetes-testing -- ping -c1 kube-dns.kube-system.svc.cluster.local
-PING kube-dns.kube-system.svc.cluster.local (172.0.0.100) 56(84) bytes of data.
+kubectl logs -l job-name=coredns -n kubernetes-dns-testing
 ----
 
-=== Outbound traffic
-
-Verify outbound traffic connectivity from pods.
+Verify internet DNS resolution.
 
 [source,bash]
 ----
-$ kubectl exec -it ${POD_NAME} -n kubernetes-testing -- ping -c1 google.es
-PING google.es (216.58.211.35) 56(84) bytes of data.
+kubectl logs -l job-name=internet -n kubernetes-dns-testing
 ----
 
 == Destroy Kubernetes cluster
@@ -151,9 +131,9 @@ Connect to a master node and run `+etcdctl+` tool to check etcd status.
 
 [source,bash]
 ----
-export ETCDCTL_CACERT="/etc/etcd/certificates/etcd-root-ca.pem"
-export ETCDCTL_CERT="/etc/etcd/certificates/etcd-member.pem"
-export ETCDCTL_KEY="/etc/etcd/certificates/etcd-member.key"
+export ETCDCTL_CACERT="/var/lib/etcd/certificates/etcd-root-ca.pem"
+export ETCDCTL_CERT="/var/lib/etcd/certificates/etcd-member.pem"
+export ETCDCTL_KEY="/var/lib/etcd/certificates/etcd-member.key"
 
 etcdctl member list -w table
 etcdctl endpoint status --cluster=true -w table
