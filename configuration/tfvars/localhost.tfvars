@@ -22,7 +22,7 @@ dns = {
 
 kubernetes_cluster = {
   num_masters     = 3
-  num_workers     = 1
+  num_workers     = 2
   version         = "1.18.0"
   crio_version    = "1.18"
   node_port_range = "30000-32767"
@@ -45,33 +45,27 @@ etcd_cluster = {
 
 kubernetes_inventory = {
   "lb" = {
-    ip_address  = "10.1.0.250"
-    mac_address = "0A:00:00:00:00:00"
     ip  = "10.1.0.250"
     mac = "0A:00:00:00:00:00"
   }
   "master00" = {
-    ip_address  = "10.1.0.10"
-    mac_address = "AA:00:00:00:00:00"
     ip  = "10.1.0.10"
     mac = "AA:00:00:00:00:00"
   },
   "master01" = {
-    ip_address  = "10.1.0.11"
-    mac_address = "AA:00:00:00:00:01"
     ip  = "10.1.0.11"
     mac = "AA:00:00:00:00:01"
   },
   "master02" = {
-    ip_address  = "10.1.0.12"
-    mac_address = "AA:00:00:00:00:02"
     ip  = "10.1.0.12"
     mac = "AA:00:00:00:00:02"
   },
   "worker00" = {
-    ip_address  = "10.1.0.100"
-    mac_address = "EE:00:00:00:00:01"
     ip  = "10.1.0.100"
     mac = "EE:00:00:00:00:01"
+  },
+  "worker01" = {
+    ip  = "10.1.0.101"
+    mac = "EE:00:00:00:00:02"
   },
 }
