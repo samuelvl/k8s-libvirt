@@ -41,7 +41,7 @@ else
 endif
 
 setup-libvirt:
-	@echo "Configuring folder for libvirt pool storage..."
+	$(info Configuring folder for libvirt pool storage...)
 	@install \
 		--mode="0750" \
    		--context="system_u:object_r:virt_image_t:s0" \

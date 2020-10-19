@@ -33,14 +33,12 @@ virsh version --daemon
 
 ==== QEMU permissions
 
-The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged. Set user and password in `+/etc/libvirt/qemu.conf+` file.
+The provider does not currently support to create volumes with different mode than `+root:root+` so QEMU agent must run as priviledged.
 
 [source,bash]
 ----
-...
-user = "root"
-group = "root"
-...
+sed -i '/^#user/s/^#//' /etc/libvirt/qemu.conf
+sed -i '/^#group/s/^#//' /etc/libvirt/qemu.conf
 ----
 
 Restart libvirt daemon.
